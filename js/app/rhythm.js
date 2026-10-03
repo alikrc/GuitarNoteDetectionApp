@@ -12,7 +12,7 @@ const Rhythm = (() => {
   // opts: { mode: "demo" | "play", rhythm, bpm, chordAt(bar), maxBars?, click (bool), onSlot(k), onBar(bar),
   //         onEval(res, bar), onEnd(), countIn (bool) }
   async function start(opts){
-    Bus.emit("stopall");
+    Bus.emit("stopall", { all:true });     // metronom da dursun: burada kendi tıkları var
     if(opts.mode === "play" && !Mic.running && !(await Mic.start())) return false;
     const a = Snd.ctx(), r = opts.rhythm, n = r.slots.length, dt = slotDur(opts.bpm);
     const countIn = opts.mode === "play" || opts.countIn ? n : 0;
@@ -216,7 +216,7 @@ const Rhythm = (() => {
 
   // Gecikme ölçümü: 4 tık say, sonraki 8 tıkın her birinde bir kez aşağı çal; ortanca sapma gecikme olur.
   async function calStart(){
-    Bus.emit("stopall");
+    Bus.emit("stopall", { all:true });     // metronom da dursun: burada kendi tıkları var
     if(!Mic.running && !(await Mic.start())){ rresEl.textContent = "Mikrofon açılamadı; gecikme ölçümü mikrofon ister."; return; }
     const a = Snd.ctx(), dt = 0.75, t0 = a.currentTime + 0.3, targets = [], onsets = [];
     for(let i = 0; i < 12; i++){ Snd.click(t0 + i*dt, i % 4 === 0); if(i >= 4) targets.push(t0 + i*dt); }

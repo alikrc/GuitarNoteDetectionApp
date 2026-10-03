@@ -25,6 +25,26 @@
   <div class="controls">
     <button class="primary" id="btn">Mikrofonu başlat</button>
     <span class="chip" id="chip">mikrofon kapalı</span>
+    <button type="button" class="stopbtn metrobtn" id="metrobtn" aria-controls="metro" aria-expanded="false">♩ Metronom</button>
+  </div>
+
+  <div class="metro card" id="metro" role="region" aria-label="Metronom" hidden>
+    <div class="row">
+      <div class="field">
+        <label class="label" for="mbpm">Tempo</label>
+        <span class="stepper">
+          <button type="button" class="mini" id="mdn" aria-label="Tempoyu 1 düşür">−</button>
+          <input type="range" id="mbpm" min="30" max="220" step="1" value="80">
+          <button type="button" class="mini" id="mup" aria-label="Tempoyu 1 artır">+</button>
+          <em><span id="mbpmv">80</span> BPM</em>
+        </span>
+      </div>
+      <div class="field"><label class="label" for="mbeats">Ölçü</label><select id="mbeats"></select></div>
+      <label class="chk"><input type="checkbox" id="maccent"> İlk vuruş vurgulu</label>
+      <button type="button" class="stopbtn" id="mtap">Dokunarak tempo</button>
+      <button type="button" class="primary small" id="mrun">Başlat</button>
+    </div>
+    <div class="mdots" id="mdots" aria-hidden="true"></div>
   </div>
 
   <div class="settings">
@@ -414,6 +434,7 @@
 <script src="js/app/base.js"></script>
 <script src="js/app/tabs.js"></script>
 <script src="js/app/settings.js"></script>
+<script src="js/app/metronome.js"></script>
 <script src="js/app/sap.js"></script>
 <script src="js/app/tuner.js"></script>
 <script src="js/app/chords.js"></script>

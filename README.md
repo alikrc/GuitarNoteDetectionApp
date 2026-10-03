@@ -15,7 +15,11 @@ Mikrofondan çaldığını dinler ve geri bildirim verir. Ses cihazda işlenir, 
   mikrofonla tel tel ya da tümü kontrolü, **akor değiştirme alıştırması** (1 dakikada iki akor arası temiz geçiş sayısı, rekor), sık dizilişler.
 - **Ritim**: 6 vuruş kalıbı (dörtlük, sekizlik, pop/folk, vals, Türk aksağı, Aksak), tempo, metronom, seçili akor ya da dizilişle
   çalma; *birlikte çal* modunda her vuruşun zamanlaması (erken/geç ms, kaçan, fazla), gecikme ölçümü.
-- **Şarkılar**: akorlu söz sayfası; çalan akor sözlerin üstünde yanar, sıradaki akor gösterilir. Dinle ya da mikrofonla birlikte çal
+- **Metronom**: üst çubuktan açılır, her sekmede çalışır (akor ya da ezgi çalarken de); 30–220 BPM, ölçü ve vurgu seçimi,
+  dokunarak tempo, görsel vuruş. Mikrofon dinlerken de kullanılabilir: tık sesi vuruş yakalamayı bozmaz.
+- **Şarkılar**: Türkçe pop/rock şarkıların akor şemaları (Barış Manço, Teoman, Duman, MFÖ, Mor ve Ötesi, Cem Karaca, Yüksek Sadakat,
+  Model, Ahmet Kaya) bölüm bölüm; sözler telifli olduğu için uygulamada yok, her şarkıda sözler için kaynak bağlantısı var.
+  Kamu malı şarkılar sözleriyle. Akorlu söz sayfası; çalan akor sözlerin üstünde yanar, sıradaki akor gösterilir. Dinle ya da mikrofonla birlikte çal
   (sonunda zamanlama yüzdesi). Kendi şarkını `[Am]söz [G*2]söz` biçiminde yazıp kaydedebilirsin.
 - **Ezgiler**: nota nota çalma; her notanın teli, perdesi ve parmağı komşu notalara göre seçilir (pozisyon planı), tab. Doğru notayı
   duyunca sıradakine geçer, yanlışta ne duyduğunu söyler. Kendi ezgini `Mi4 Re4 Do4:2` biçiminde yazabilirsin.
@@ -66,7 +70,9 @@ tutarlılığını (betik sırası, ad çakışması, çevrimdışı önbellek l
   [TDV İslâm Ansiklopedisi](https://islamansiklopedisi.org.tr/turk-aksagi). Usullerin gitar vuruş yönlerine çevrilmesi bizim uyarlamamızdır.
 - Perde sayıları tipik değerlerdir; çalgı modeline göre değişebilir.
 - AEU perde listesi Sol Klarnet Dinleyici'den alındı.
-- Hazır şarkı ve ezgiler kamu malı eserlerdir (Amazing Grace, Happy Birthday to You, Neşeye Övgü, Twinkle Twinkle, Frère Jacques);
+- Türkçe şarkıların akorları Ultimate Guitar kullanıcı akor sayfalarından alındı (her şarkıda bağlantı var), uygulamadaki
+  şekillere sadeleştirildi; kaynakta süre bilgisi olmadığı için ölçü süreleri, tempo ve vuruş önerisi yaklaşıktır.
+- Sözlü hazır şarkılar ve ezgiler kamu malı eserlerdir (Amazing Grace, Happy Birthday to You, Neşeye Övgü, Twinkle Twinkle, Frère Jacques);
   akorlar basitleştirilmiştir.
 
 ## Dosyalar
@@ -76,7 +82,7 @@ tutarlılığını (betik sırası, ad çakışması, çevrimdışı önbellek l
 | `index.html` | Yalnızca işaretleme: ayar çubuğu, sekmeler, paneller |
 | `css/app.css` | Stiller (açık/koyu tema) |
 | `js/core/` | Saf mantık, tarayıcı ve Node testleri ortak: `music` (nota, perde bulucu, FFT), `guitar` (akort, sap, parmak planı), `chords`, `rhythm`, `songs`, `ear`, `lessons` |
-| `js/app/` | Arayüz modülleri: `base` (ayarlar, olay yolu, ses üretimi, mikrofon), `tabs`, `settings`, `sap`, `tuner`, `chords`, `rhythm`, `songs`, `melody`, `ear`, `lessons`, `main` |
+| `js/app/` | Arayüz modülleri: `base` (ayarlar, olay yolu, ses üretimi, mikrofon), `tabs`, `settings`, `metronome`, `sap`, `tuner`, `chords`, `rhythm`, `songs`, `melody`, `ear`, `lessons`, `main` |
 | `sw.js`, `manifest.webmanifest`, `icon.svg` | Çevrimdışı kullanım ve ana ekrana ekleme |
 | `test.js` | Testler |
 

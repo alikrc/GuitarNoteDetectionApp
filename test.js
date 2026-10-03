@@ -339,8 +339,8 @@ ok(tunerReading(midiToFreq(45)*1.02, 5).advice==='gevşet', 'secili telde tiz: g
 setTuning('dropd'); ok(tunerReading(midiToFreq(38)).string===6, 'Drop D: Re2 6. tel'); setTuning('standart');
 
 console.log('\n[19] Akor yazimi, capo, akor degistirme sayaci');
-ok(normalizeSymbol('F#m')==='F♯m' && normalizeSymbol('bb')==='B♭' && chordBySymbol('A#')?.symbol==='B♭' && chordBySymbol('Gb')===null,
-   'klavye yazimi ve enharmonik (A# = B♭; G♭ akoru yok)');
+ok(normalizeSymbol('F#m')==='F♯m' && normalizeSymbol('bb')==='B♭' && chordBySymbol('A#')?.symbol==='B♭' && chordBySymbol('Gb')?.symbol==='F♯' && chordBySymbol('G#')===null,
+   'klavye yazimi ve enharmonik (A# = B♭, G♭ = F♯; G♯ majör akoru yok)');
 const gCh = chordBySymbol('G');
 ok(soundingSymbol(gCh, 2)==='A' && chordStrings(gCh, 2)[0].midi===45 && chordPcs(gCh, 2).join()==='9,1,4', 'capo 2: G sekli A olarak duyulur');
 ok(chordCheck(strum('A'), gCh, 2).ok && !chordCheck(strum('A'), gCh, 0).ok, 'capo hesaba katilarak akor kontrolu');
@@ -400,6 +400,11 @@ ok(lessonCompletedBy({}, {type:'tuned'})==='akort' && lessonCompletedBy({}, {typ
 ok(goalMet({type:'rhythm', id:'pop', bpm:70, pct:80}, {type:'rhythm', id:'pop', bpm:75, pct:85, bars:4}) &&
    !goalMet({type:'rhythm', id:'pop', bpm:70, pct:80}, {type:'rhythm', id:'pop', bpm:65, pct:95, bars:4}) &&
    goalMet({type:'changes', pair:['Em','Am'], min:15}, {type:'changes', pair:['Am','Em'], perMin:16}), 'hedef karsilastirma (tempo alti gecmez, cift sirasi onemsiz)');
+
+console.log('\n[22b] Metronom: dokunarak tempo');
+const { tapTempo } = core;
+ok(tapTempo([0,500,1000,1500])===120 && tapTempo([0,500,1000,1700,2200])===120, 'esit dokunus 120 BPM; tek kacan dokunus ortancayi bozmuyor');
+ok(tapTempo([0])===null && tapTempo([0,500,5000,5600])===100, 'tek dokunus tempo vermez; 2 sn ara yeni dizi baslatir');
 
 console.log('\n[23] Uygulama dosyalari');
 const scripts = [...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);

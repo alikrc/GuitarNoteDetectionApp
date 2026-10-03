@@ -294,6 +294,7 @@ const Chords = (() => {
     get current(){ return chord; },
     get capo(){ return capo; },
     voicing, diagram, PROGS, select,
+    setCapo(n){ capo = Math.max(0, Math.min(7, n | 0)); capoEl.value = capo; store.set("capo", capo); drawChord(); resetCheck(); Bus.emit("capo", capo); },
     openCheck(sym, mode){ const c = chordBySymbol(sym); if(c) select(c); setCheck(mode); },
     openChanges(a, b){ chaEl.value = a; chbEl.value = b; store.set("changePair", [a, b]); showBest();
                        $("change").scrollIntoView({ block:"start" }); chMsg.innerHTML = CH_HINT; }

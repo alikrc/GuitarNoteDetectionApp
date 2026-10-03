@@ -109,3 +109,14 @@ class OnsetDetector{
     return hit;
   }
 }
+
+// Dokunarak tempo: dokunuş zamanlarından (ms) BPM. Son 2 saniyeden eski dokunuşlar ve aradaki çok uzun boşluklar
+// yeni bir dizi başlatır; aralıkların ortancası tek tük kaçan dokunuşa dayanıklıdır. Döner: BPM ya da null.
+function tapTempo(times){
+  const t = [];
+  for(const x of times){ if(t.length && x - t[t.length-1] > 2000) t.length = 0; t.push(x); }
+  if(t.length < 2) return null;
+  const iv = []; for(let i = 1; i < t.length; i++) iv.push(t[i] - t[i-1]);
+  const bpm = Math.round(60000 / median(iv.slice(-6)));
+  return Math.min(240, Math.max(30, bpm));
+}

@@ -1,7 +1,7 @@
 // Başlatma: bütün modüller yüklendikten sonra sekme açılır; Esc ve sekme arka plana geçince sesler susar.
-window.addEventListener("keydown", e => { if(e.key === "Escape") Bus.emit("stopall"); });
+window.addEventListener("keydown", e => { if(e.key === "Escape") Bus.emit("stopall", { all:true }); });
 // Sekme arka plana geçince unutulan ses çalmaya devam etmesin
-document.addEventListener("visibilitychange", () => { if(document.hidden) Bus.emit("stopall"); });
+document.addEventListener("visibilitychange", () => { if(document.hidden) Bus.emit("stopall", { all:true }); });
 Tabs.init();
 
 // Çevrimdışı kullanım (http/https üzerinden açıldığında)

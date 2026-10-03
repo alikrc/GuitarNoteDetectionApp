@@ -1,7 +1,7 @@
 // Çevrimdışı kullanım: uygulama dosyaları önbellekte tutulur.
 // Kendi dosyalarımız önce ağdan istenir (güncellemeler hemen gelsin), ağ yoksa önbellekten verilir.
 // Google Fonts dosyaları ilk yüklemede önbelleğe alınır.
-const CACHE = "gitar-v4";
+const CACHE = "gitar-v5";
 const SHELL = [
   "./",
   "index.html",
@@ -16,6 +16,7 @@ const SHELL = [
   "js/app/base.js",
   "js/app/tabs.js",
   "js/app/settings.js",
+  "js/app/metronome.js",
   "js/app/sap.js",
   "js/app/tuner.js",
   "js/app/chords.js",

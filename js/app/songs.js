@@ -10,9 +10,11 @@ const Songs = (() => {
   function all(){ return [...SONGS, ...user]; }
   function buildSelect(){
     selEl.replaceChildren();
-    const g1 = document.createElement("optgroup"); g1.label = "Hazır";
-    SONGS.forEach(s => g1.appendChild(new Option(s.title, s.id)));
-    selEl.appendChild(g1);
+    for(const [g, label] of [["tr", "Türkçe pop / rock (yalnız akorlar)"], ["pd", "Sözlü (kamu malı)"], ["ex", "Alıştırmalar"]]){
+      const og = document.createElement("optgroup"); og.label = label;
+      SONGS.filter(s => s.group === g).forEach(s => og.appendChild(new Option(s.artist ? s.artist + " — " + s.title : s.title, s.id)));
+      selEl.appendChild(og);
+    }
     if(user.length){
       const g2 = document.createElement("optgroup"); g2.label = "Benim şarkılarım";
       user.forEach(s => g2.appendChild(new Option(s.title, s.id)));
@@ -24,6 +26,13 @@ const Songs = (() => {
     selEl.value = song.id; store.set("song", song.id);
     rhyEl.value = song.rhythm; bpmEl.value = song.bpm;
     metaEl.textContent = song.meta || "Kendi şarkın";
+    if(song.source){
+      const a = document.createElement("a");
+      a.href = song.source; a.target = "_blank"; a.rel = "noopener"; a.textContent = "sözler ve kaynak akorlar";
+      metaEl.append(" · ", a);
+    }
+    // Hazır şarkının capo'su Akorlar sekmesindeki capo'ya uygulanır
+    if(song.capo !== undefined && song.capo !== Chords.capo) Chords.setCapo(song.capo);
     titleEl.value = song.id.startsWith("u-") ? song.title : "";
     textEl.value = song.id.startsWith("u-") ? song.text : "";
     $("songdel").disabled = !song.id.startsWith("u-");

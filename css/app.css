@@ -369,3 +369,12 @@ details.editor summary{cursor:pointer;font-size:13px;font-weight:600;color:var(-
 .edots{display:flex;gap:4px;margin:6px 0}
 .edots i{width:14px;height:14px;border-radius:50%;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--line)}
 .edots i.r{background:var(--ok);box-shadow:none} .edots i.w{background:#C2412D;box-shadow:none}
+
+/* ---- Metronom ---- */
+.metrobtn.on{border-color:var(--accent);color:var(--accent)}
+.metro{margin:0 0 18px;padding:14px 18px}
+.mdots{display:flex;gap:8px;margin-top:12px}
+.mdots i{width:18px;height:18px;border-radius:50%;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--line)}
+.mdots i.acc{box-shadow:inset 0 0 0 2px var(--accent)}
+.mdots i.now{background:var(--teal);box-shadow:none}
+.mdots i.acc.now{background:var(--accent)}

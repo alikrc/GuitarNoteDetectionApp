@@ -13,7 +13,7 @@ const CHORD_TYPES = {
   "sus4": { tr:"sus4",            iv:[0,5,7],    formula:"kök + tam dörtlü + tam beşli (üçlü yok)" }
 };
 const INTERVAL_TR = {0:"kök",2:"ikili",3:"küçük üçlü",4:"büyük üçlü",5:"dörtlü",7:"beşli",10:"küçük yedili",11:"büyük yedili"};
-const ROOT_SYM = ["C","C♯","D","E♭","E","F","F♯","G","G♯","A","B♭","B"];
+const ROOT_SYM = ["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
 const CHORD_GROUPS = ["Açık majör","Açık minör","Yedili","Sus ve maj7","Barre"];
 // Standart akort şekilleri. frets/fingers 6. telden 1. tele; -1 çalınmaz, parmak 0 = basılmaz.
 // barre: işaret (ya da yüzük) parmağının birden çok teli birden bastırdığı perde ve tel aralığı.
@@ -50,6 +50,8 @@ const CHORDS = [
     barre:{ fret:1, from:5, to:1 } },                                                         // B♭
   { root:11, type:"",     frets:[-1,2,4,4,4,2],  fingers:[0,1,3,3,3,1], group:4,
     barre:{ fret:2, from:5, to:1 } },                                                         // B
+  { root:6,  type:"",     frets:[2,4,4,3,2,2],   fingers:[1,3,4,2,1,1], group:4,
+    barre:{ fret:2, from:6, to:1 } },                                                         // F♯
   { root:11, type:"m",    frets:[-1,2,4,4,3,2],  fingers:[0,1,3,4,2,1], group:4,
     barre:{ fret:2, from:5, to:1 } },                                                         // Bm
   { root:6,  type:"m",    frets:[2,4,4,2,2,2],   fingers:[1,3,4,1,1,1], group:4,
@@ -68,7 +70,7 @@ function normalizeSymbol(sym){
   return m[1].toUpperCase() + acc + m[3];
 }
 // Enharmonik yazımlar da bulunur (A♯ → B♭, D♭ → C♯ …)
-const ENHARMONIC = {"A♯":"B♭","D♭":"C♯","G♭":"F♯","D♯":"E♭","A♭":"G♯"};
+const ENHARMONIC = {"A♯":"B♭","D♭":"C♯","G♭":"F♯","D♯":"E♭","G♯":"A♭"};
 function chordBySymbol(sym){
   let s = normalizeSymbol(sym);
   if(!s) return null;
