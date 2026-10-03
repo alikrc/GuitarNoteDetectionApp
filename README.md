@@ -1,5 +1,7 @@
 # Gitar Dinleyici
 
+**Uygulamayı aç: https://alikrc.github.io/GuitarNoteDetectionApp/**
+
 Tarayıcıda çalışan gitar öğrenme ve akort aracı ([Sol Klarnet Dinleyici](https://github.com/alikrc/ClarinetNoteDetectionApp)'nin gitar sürümü).
 Mikrofondan çaldığını dinler ve geri bildirim verir. Ses cihazda işlenir, hiçbir yere gönderilmez. Sekmeler:
 
