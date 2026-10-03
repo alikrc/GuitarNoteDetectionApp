@@ -1,0 +1,421 @@
+// Testler: js/core/*.js dosyaları tarayıcıdaki sırayla bir vm bağlamına yüklenir ve oradaki adlar kullanılır.
+const fs = require('fs'), path = require('path'), vm = require('vm');
+const CORE = ['music', 'guitar', 'chords', 'rhythm', 'songs', 'ear', 'lessons'];
+const ctx = vm.createContext({ console });
+for(const f of CORE) vm.runInContext(fs.readFileSync(path.join(__dirname, 'js/core', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
+const core = new Proxy({}, { get: (_, k) => vm.runInContext(String(k), ctx) });
+const read = f => fs.readFileSync(path.join(__dirname, f), 'utf8');
+const html = read('index.html');
+const { GUITAR_TRANSPOSE: T, INSTRUMENTS, setInstrument, getInstrument, getFrets, TUNINGS, setTuning, getTuning, stringOpen, writtenRange, positionsFor, positionNote,
+        analyze, detectPitch, midiToFreq, nearestPerde, perdeFreq, describePosition, tabFor,
+        setA4, getA4, sensitivityToRms, NoteStabilizer, noteKey, staffPos,
+        CHORDS, CHORD_TYPES, CHORD_GROUPS, chordBySymbol, chordPcs, chordStrings, chordBaseFret, chroma, chordCheck, matchChords,
+        RHYTHMS, rhythmById, slotDur, rhythmBar, scoreTiming, median, OnsetDetector } = core;
+const FRETS = getFrets();
+
+let fail = 0;
+const ok = (c,msg,extra='') => { console.log((c?'  OK  ':'  FAIL') + ' ' + msg + (extra?'   '+extra:'')); if(!c) fail++; };
+
+console.log('\n[1] Akortlar ve aralik');
+ok(TUNINGS.standart.strings.join()==='40,45,50,55,59,64', 'standart akort: Mi2 La2 Re3 Sol3 Si3 Mi4');
+ok(stringOpen(6)===40 && stringOpen(1)===64, '6. tel kalin Mi2, 1. tel ince Mi4');
+let r = writtenRange();
+ok(r.low===52 && r.high===96, 'standart akortta yazili Mi3 – Do7 (duyulan Mi2 – Do6)', r.low+'–'+r.high);
+setTuning('dropd');
+ok(stringOpen(6)===38 && writtenRange().low===50, 'Drop D: 6. tel Re2');
+let threw=false; try{ setTuning('yok'); }catch(e){ threw=true; }
+ok(threw && getTuning()==='dropd', 'bilinmeyen akort reddediliyor');
+setTuning('standart');
+let tunErr=[];
+for(const k in TUNINGS){
+  const s = TUNINGS[k].strings;
+  if(s.length!==6) tunErr.push(k+': 6 tel degil');
+  for(let i=1;i<6;i++) if(s[i]<=s[i-1]) tunErr.push(k+': teller kalindan inceye siralanmamis');
+}
+ok(tunErr.length===0, 'tum akortlar 6 telli ve kalindan inceye', tunErr.join(' | '));
+
+console.log('\n[2] Sapta konumlar');
+const g4 = positionsFor(67);                       // yazili Sol4 = duyulan Sol3
+ok(g4[0].string===3 && g4[0].fret===0, 'yazili Sol4: temel konum acik 3. tel');
+ok(g4.map(p=>p.string+'/'+p.fret).join(' ')==='3/0 4/5 5/10 6/15', 'Sol4: 3/0, 4/5, 5/10, 6/15', g4.map(p=>p.string+'/'+p.fret).join(' '));
+ok(positionsFor(52).length===1 && positionsFor(52)[0].string===6 && positionsFor(52)[0].fret===0, 'en pes Mi3 yalniz acik 6. tel');
+ok(positionsFor(96).length===1 && positionsFor(96)[0].string===1 && positionsFor(96)[0].fret===20, 'en tiz Do7 yalniz 1. tel 20. perde');
+ok(positionsFor(51).length===0 && positionsFor(97).length===0, 'aralik disi notalarda konum yok');
+let posErr=[], total=0;
+for(let w=r.low; w<=r.high; w++){
+  const ps = positionsFor(w);
+  total += ps.length;
+  if(!ps.length) posErr.push(w+': konum yok');
+  for(const p of ps){
+    if(positionNote(p.string,p.fret)!==w) posErr.push(w+': '+p.string+'/'+p.fret+' baska nota');
+    if(p.fret<0 || p.fret>FRETS) posErr.push(w+': perde disi');
+  }
+  for(let i=1;i<ps.length;i++) if(ps[i].fret<ps[i-1].fret) posErr.push(w+': perdeye gore sirali degil');
+}
+ok(posErr.length===0, `aralikta her nota calinabiliyor, ${total} konumun hepsi dogru nota`, posErr.join(' | '));
+ok(total===6*(FRETS+1), 'toplam konum = 6 tel x 21 (acik + 20 perde)');
+setTuning('dropd');
+ok(positionsFor(50)[0].string===6 && positionsFor(50)[0].fret===0, 'Drop D: yazili Re3 acik 6. tel');
+ok(positionsFor(52)[0].fret===2 && positionsFor(52)[0].string===6, 'Drop D: Mi3 6. telde 2. perde');
+setTuning('standart');
+
+console.log('\n[3] Frekans -> yazili / duyulan / perde (gitar oktav pes duyulur)');
+const cases = [
+  [midiToFreq(55), 'G4', 'G3', 'Rast'],             // acik 3. tel
+  [midiToFreq(40), 'E3', 'E2', null],               // acik 6. tel
+  [midiToFreq(45), 'A3', 'A2', 'Kaba Dügâh'],       // acik 5. tel
+  [midiToFreq(57), 'A4', 'A3', 'Dügâh'],
+  [midiToFreq(62), 'D5', 'D4', 'Nevâ'],
+];
+for(const [f,w,s,p] of cases){
+  const a = analyze(f, T);
+  ok(a.writtenName.en===w && a.soundingName.en===s && (a.perde?a.perde.name:null)===p,
+     `${f.toFixed(1)} Hz -> yazili ${w} / duyulan ${s} / ${p}`,
+     `(gelen: ${a.writtenName.en} / ${a.soundingName.en} / ${a.perde?a.perde.name:'—'})`);
+}
+const e2 = analyze(82.41, T);
+ok(e2.openString===6 && e2.inRange, '82,41 Hz -> acik 6. tel olarak taniniyor');
+ok(analyze(midiToFreq(59), T).openString===2 && analyze(midiToFreq(60), T).openString===null, 'Si3 acik 2. tel; Do4 acik tel degil');
+ok(analyze(midiToFreq(37), T).inRange===false, 'Do♯2 standart akortta aralik disi');
+
+console.log('\n[4] Koma perdeleri (AEU)');
+const komaCase = (commas, expectPerde, expectNote) => {
+  const writtenMidi = 67 + commas*12/53;
+  const a = analyze(midiToFreq(writtenMidi-T), T);
+  ok(a.perde.name===expectPerde && a.writtenName.en===expectNote,
+     `${commas} koma -> ${expectPerde} (${expectNote})`, `(gelen: ${a.perde.name} / ${a.writtenName.en})`);
+};
+komaCase(17,'Segâh','B4');
+komaCase(18,'Bûselik','B4');
+komaCase(27,'Hicaz','C♯5');
+komaCase(-22,'Yegâh','D4');
+
+console.log('\n[5] Perde bulucu: sentetik tel sesi (tum harmonikler, guclu 2. harmonik, sonumlenen)');
+const sr = 48000;
+for(const f0 of [73.42, 82.41, 110.0, 146.83, 196.0, 246.94, 329.63, 440.0, 659.26, 880.0, 1046.5]){
+  const n = 4096, buf = new Float32Array(n);
+  for(let i=0;i<n;i++){
+    const t = i/sr, env = Math.exp(-t*3);
+    let v = 0;
+    for(let k=1;k<=10;k++) v += (k===2 ? 0.9 : 1/k) * Math.sin(2*Math.PI*k*f0*t + k*0.5);
+    buf[i] = 0.4*env*v + 0.004*(Math.random()-0.5);
+  }
+  const d = detectPitch(buf, sr);
+  const cents = 1200*Math.log2(d.freq/f0);
+  ok(Math.abs(cents) < 5, `${f0} Hz -> ${d.freq.toFixed(2)} Hz`, `(${cents.toFixed(2)} sent, clarity ${d.clarity.toFixed(2)})`);
+}
+
+console.log('\n[6] Sessizlik ve gurultu reddi');
+const quiet = new Float32Array(4096); for(let i=0;i<4096;i++) quiet[i]=0.0005*(Math.random()-0.5);
+ok(detectPitch(quiet, sr).freq === -1, 'sessizlikte nota gostermiyor');
+const noise = new Float32Array(4096); for(let i=0;i<4096;i++) noise[i]=0.3*(Math.random()-0.5);
+ok(detectPitch(noise, sr).freq === -1, 'beyaz gurultuyu reddediyor');
+
+console.log('\n[7] Nota seridi: AEU koma frekanslari ve klavye eslemesi');
+let stripErr = [];
+for(let w=r.low; w<=r.high; w++){
+  const a = analyze(perdeFreq(w, T), T);
+  const p = nearestPerde((w-67)*53/12);
+  if(a.written !== w) stripErr.push(`${w}: geri okumada ${a.written}`);
+  if((a.perde?a.perde.name:null) !== (p?p.name:null)) stripErr.push(`${w}: perde adi tutmadi`);
+  if(p && Math.abs(a.perde.delta) > 0.01) stripErr.push(`${w}: ${p.name} komasindan sapma`);
+}
+ok(stripErr.length===0, `${r.high-r.low+1} notanin tamami dogru perde ve tam koma yuksekliginde`, stripErr.join(' | '));
+ok(Math.abs(perdeFreq(67,T) - midiToFreq(55)) < 1e-9, 'Rast (yazili Sol4) = duyulan Sol3 = 196,00 Hz', perdeFreq(67,T).toFixed(2)+' Hz');
+const uiSrc = read('js/app/sap.js').split('const KEYCODES = [')[1];
+const codes = uiSrc.split('];')[0].match(/"[^"]+"/g).map(x=>x.slice(1,-1));
+const labels = uiSrc.split('const KEYLABEL = [')[1].split('];')[0].match(/"[^"]+"/g).map(x=>x.slice(1,-1));
+ok(codes.length===labels.length && codes.length===r.high-r.low+1, `standart akortta ${codes.length} notanin hepsi klavyede`, `${codes.length} kod / ${labels.length} etiket`);
+ok(new Set(codes).size===codes.length, 'ayni tus iki notaya baglanmamis');
+
+console.log('\n[8] Talimat ve tab');
+const d0 = describePosition({string:3, fret:0});
+ok(d0[0].text==='3. tel (Sol teli)' && d0[1].text.includes('açık') && !d0[2].active, 'acik 3. tel: perdeye basma, sol el bosta', JSON.stringify(d0.map(x=>x.text)));
+const d3 = describePosition({string:5, fret:3});
+ok(d3[1].text==='3. perdeye bas' && d3[2].text.startsWith('yüzük'), '5. tel 3. perde: yuzuk parmagi', JSON.stringify(d3.map(x=>x.text)));
+ok(describePosition({string:1, fret:12})[2].text.includes('12. pozisyon'), '12. perde: pozisyon kaydirma');
+const tab = tabFor({string:5, fret:3}).split('\n');
+ok(tab.length===6 && tab[0].startsWith('e ') && tab[5].startsWith('E ') && tab[4]==='A |--3--|' && tab[0]==='e |-----|', 'tab: ustte e, altta E, 5. telde 3', JSON.stringify(tab));
+ok(tabFor({string:1, fret:12}).split('\n')[0]==='e |--12--|', 'iki haneli perde tab\'da hizali');
+setTuning('dadgad');
+ok(tabFor({string:2, fret:0}).split('\n').map(l=>l.slice(0,2).trim()).join('')==='dAGDAD', 'DADGAD tab etiketleri (ustten 1. tel)');
+setTuning('standart');
+
+console.log('\n[9] Diyapazon ayari');
+setA4(442);
+ok(Math.abs(midiToFreq(69)-442)<1e-9, 'La = 442 Hz');
+const r442 = analyze(perdeFreq(67,T), T);
+ok(r442.perde.name==='Rast' && Math.abs(r442.perde.delta)<0.01, '442 Hz\'de Rast yine tam Rast');
+threw=false; try{ setA4(1000); }catch(e){ threw=true; }
+ok(threw && getA4()===442, 'gecersiz diyapazon reddediliyor');
+setA4(440);
+
+console.log('\n[10] Hassasiyet ve titreme onleyici');
+ok(sensitivityToRms(1) > sensitivityToRms(5) && sensitivityToRms(5) > sensitivityToRms(10), 'hassasiyet arttikca esik dusuyor');
+const soft = new Float32Array(4096); for(let i=0;i<4096;i++) soft[i]=0.006*Math.sin(2*Math.PI*196*i/sr);
+ok(detectPitch(soft, sr, 60, 1400, sensitivityToRms(1)).freq===-1, 'kisik ses dusuk hassasiyette yok sayiliyor');
+ok(Math.abs(detectPitch(soft, sr, 60, 1400, sensitivityToRms(10)).freq-196)<1, 'ayni ses yuksek hassasiyette algilaniyor');
+const st = new NoteStabilizer(3);
+ok(!st.push('a') && !st.push('a') && st.push('a'), 'yeni nota 3 olcumden sonra kabul ediliyor');
+ok(!st.push('b') && st.push('a'), 'tek olcumluk sicrama gosterilen notayi degistirmiyor');
+ok(noteKey(analyze(perdeFreq(76,T),T)) !== noteKey(analyze(perdeFreq(75,T),T)), 'komsu perdeler farkli anahtar');
+
+console.log('\n[11] Dizekteki yer');
+ok(staffPos(64).step===0 && staffPos(77).step===8, 'Mi4 alt cizgi, Fa5 ust cizgi');
+let maxStep=-99, minStep=99;
+for(const k in TUNINGS){ setTuning(k); const rr=writtenRange();
+  for(let w=rr.low; w<=rr.high; w++){ const s=staffPos(w).step; maxStep=Math.max(maxStep,s); minStep=Math.min(minStep,s); } }
+setTuning('standart');
+ok(minStep===-8 && maxStep===16, 'tum akortlarda aralik -8…16 adim (sabit yukseklikli dizek)', minStep+'…'+maxStep);
+ok(staffPos(96).ottava && staffPos(96).step===12, 'Do7 8va ile bir oktav asagi');
+
+console.log('\n[12] Calgi turu: perde sayisi');
+ok(getInstrument()==='akustik' && getFrets()===20, 'varsayilan akustik, 20 perde');
+setInstrument('klasik');
+ok(getFrets()===19 && writtenRange().high===64+19+T && positionsFor(64+20+T).length===0, 'klasik: 19 perde, 20. perde sesi yok');
+setInstrument('elektro24');
+ok(getFrets()===24 && writtenRange().high===100 && positionsFor(100)[0].fret===24, 'elektro 24 perde: en tiz Mi6 (yazili Mi7), 1. tel 24. perde');
+ok(positionsFor(67).length===4 && positionsFor(76).length===6, 'elektro 24: yazili Mi5 (duyulan Mi4) 6 telin hepsinde var');
+let maxS=-99; for(let w=writtenRange().low; w<=writtenRange().high; w++) maxS=Math.max(maxS, staffPos(w).step);
+ok(maxS<=16, '24 perdede de dizek yuksekligi yetiyor', String(maxS));
+threw=false; try{ setInstrument('bas'); }catch(e){ threw=true; }
+ok(threw && getInstrument()==='elektro24', 'bilinmeyen calgi reddediliyor');
+ok(Object.keys(INSTRUMENTS).every(k=>{ setInstrument(k); return positionsFor(52).length===1; }), 'her calgida en pes Mi3 calinabiliyor');
+setInstrument('akustik');
+
+console.log('\n[13] Akor sekilleri (standart akort): her sekil gercekten o akoru veriyor mu');
+let chordErr=[];
+for(const c of CHORDS){
+  const s = chordStrings(c).filter(r=>!r.muted), pcs = chordPcs(c), omit = CHORD_TYPES[c.type].omit;
+  if(c.frets.length!==6 || c.fingers.length!==6) chordErr.push(c.symbol+': 6 tel degil');
+  for(const r of s) if(!pcs.includes(r.midi%12)) chordErr.push(c.symbol+': '+r.string+'. tel akorda olmayan ses');
+  CHORD_TYPES[c.type].iv.forEach((iv,i)=>{ if(iv!==omit && !s.some(r=>r.midi%12===pcs[i])) chordErr.push(c.symbol+': '+iv+' eksik'); });
+  if(s[0].midi%12 !== c.root) chordErr.push(c.symbol+': en pes ses kok degil');
+  c.frets.forEach((f,i)=>{ if((f>0) !== (c.fingers[i]>0)) chordErr.push(c.symbol+': '+(6-i)+'. telde perde/parmak uyumsuz'); });
+  if(c.barre){ const b=c.barre; for(let st=b.to; st<=b.from; st++){ const f=c.frets[6-st]; if(f>=0 && f<b.fret) chordErr.push(c.symbol+': barre altinda daha pes perde'); } }
+  for(let i=1;i<s.length;i++) if(s[i].midi%12===s[i-1].midi%12) chordErr.push(c.symbol+': komsu iki tel ayni ses (tel tel kontrol ayirt edemez)');
+  if(c.group<0 || c.group>=CHORD_GROUPS.length) chordErr.push(c.symbol+': grup yok');
+}
+ok(chordErr.length===0, `${CHORDS.length} akorun hepsi dogru seslerden olusuyor, en pes ses kok`, chordErr.join(' | '));
+ok(new Set(CHORDS.map(c=>c.symbol)).size===CHORDS.length, 'akor sembolleri tekil');
+const am = chordBySymbol('Am');
+ok(am.frets.join()==='-1,0,2,2,1,0' && am.name==='La minör', 'Am = x02210, La minor');
+ok(chordStrings(am).map(r=>r.muted?'x':r.role).join('|')==='x|kök|beşli|kök|küçük üçlü|beşli', 'Am tel gorevleri: kok, besli, kok, kucuk uclu, besli');
+ok(chordBySymbol('C').frets.join()==='-1,3,2,0,1,0' && chordBySymbol('G').frets.join()==='3,2,0,0,0,3' && chordBySymbol('D').frets.join()==='-1,-1,0,2,3,2',
+   'C x32010, G 320003, D xx0232 (Wikipedia: Guitar chord)');
+ok(chordBaseFret(chordBySymbol('F'))===1 && chordBaseFret(chordBySymbol('Gm'))===3 && chordBaseFret(chordBySymbol('Cm'))===3, 'kutu semasi: F 1. perdeden, Gm ve Cm 3. perdeden');
+
+console.log('\n[14] Akor dinleme (kromagram): sentetik tel sesleriyle');
+function strum(sym, extraMidi){
+  const n = 8192, buf = new Float32Array(n);
+  const notes = chordStrings(chordBySymbol(sym)).filter(r=>!r.muted).map(r=>r.midi);
+  if(extraMidi) notes.push(extraMidi);
+  notes.forEach((m, j) => {
+    const f0 = midiToFreq(m);
+    for(let i=0;i<n;i++){
+      const t = i/sr; let v = 0;
+      for(let k=1;k<=8;k++) v += Math.sin(2*Math.PI*k*f0*t + j + k) / Math.pow(k, 1.2);
+      buf[i] += 0.08*v;
+    }
+  });
+  for(let i=0;i<n;i++) buf[i] += 0.003*(Math.random()-0.5);
+  return chroma(buf, sr);
+}
+let chkErr=[];
+for(const sym of ['Am','C','G','D','E','Em','Dm','A','F','E7','Bm','Cmaj7']){
+  const ch = strum(sym), res = chordCheck(ch, chordBySymbol(sym)), best = matchChords(ch)[0].chord.symbol;
+  if(!res.ok) chkErr.push(sym+': kontrol gecmedi (eksik '+res.tones.filter(t=>!t.heard&&!t.optional).map(t=>t.pc)+', fazla '+res.extra+')');
+  if(best!==sym) chkErr.push(sym+': en benzer '+best);
+}
+ok(chkErr.length===0, '12 akor kendi seklinden calininca dogru taniniyor', chkErr.join(' | '));
+const wrong = chordCheck(strum('C'), am);
+ok(!wrong.ok && wrong.tones.find(t=>t.pc===9).heard===false, 'C calinip Am kontrol edilince eksik La bulunuyor');
+const extra = chordCheck(strum('Am', 54+12), am);                    // Am + akorda olmayan Fa♯4
+ok(!extra.ok && extra.extra.includes(6), 'akorda olmayan ses (Fa♯) fazla diye bildiriliyor', JSON.stringify(extra.extra));
+ok(matchChords(strum('Em'))[0].chord.symbol!=='E' && matchChords(strum('E'))[0].chord.symbol!=='Em', 'majör ve minör birbirine karismiyor');
+
+console.log('\n[15] Ritim kaliplari ve zamanlama');
+let rhyErr=[];
+for(const r of RHYTHMS){
+  if(!/^[DU-]+$/.test(r.slots)) rhyErr.push(r.id+': gecersiz hucre');
+  if(r.counts.length!==r.slots.length) rhyErr.push(r.id+': sayim uzunlugu');
+  if(r.beats[0]!==0 || r.beats.some(b=>b>=r.slots.length)) rhyErr.push(r.id+': metronom vuruslari');
+  if(r.slots[0]!=='D' || r.accents[0]!==2) rhyErr.push(r.id+': olcu kuvvetli asagi vurusla baslamiyor');
+  for(const k in r.accents) if(r.slots[k]==='-') rhyErr.push(r.id+': bos hucrede vurgu');
+}
+ok(rhyErr.length===0, `${RHYTHMS.length} kalibin hepsi tutarli`, rhyErr.join(' | '));
+ok(rhythmById('aksak').slots.length===9 && rhythmById('turkaksagi').slots.length===5, 'Aksak 9 zaman (2+2+2+3), Turk aksagi 5 zaman (2+3)');
+ok(rhythmById('pop').slots==='D-DU-UDU', 'pop kalibi: asagi, asagi-yukari, yukari-asagi-yukari');
+ok(Math.abs(slotDur(120)-0.25)<1e-12, '120 BPM: sekizlik 250 ms');
+const bar = rhythmBar(rhythmById('pop'), 120, 10);
+ok(bar.length===6 && bar[0].t===10 && bar[1].t===10.5 && bar[1].dir==='down' && bar[2].dir==='up' && Math.abs(bar[3].t-11.25)<1e-9,
+   'pop olcusunun vurus zamanlari ve yonleri', JSON.stringify(bar.map(b=>b.t+b.dir[0])));
+const sc = scoreTiming(bar, [10.01, 10.47, 10.82, 11.25, 11.5, 11.9], 0.25, 0.04);
+ok(sc.hits.map(h=>h.verdict).join()==='ok,ok,late,ok,ok,miss' && sc.extra===1, 'erken/gec/kacan/fazla vurus siniflaniyor',
+   JSON.stringify(sc.hits.map(h=>h.verdict))+' fazla '+sc.extra);
+ok(median([5,1,100,3,2])===3 && median([1,2,3,4])===2.5, 'ortanca');
+
+console.log('\n[16] Mikrofondan vurus yakalama: sentetik tel vuruslari + metronom tiki');
+// Gercege yakin sentetik vurus: tel yeniden calininca onceki titresimi biter; yukari vurus yalniz ince 4 tel;
+// pena/tirnak kisa bir surtunme gurultusu cikarir. Metronom tiki tarayicidaki gibi 25 ms Hann pencereli 4 kHz.
+// Sabit tohumlu gurultu: test her calistirmada ayni sonucu versin (sonuc rastgele gurultuye baglanmasin)
+let seed = 12345;
+const rand = () => { seed = (seed*1664525 + 1013904223) >>> 0; return seed/4294967296; };
+function strumSignal(events, dur, sym, clicks=[]){
+  const n = Math.round(dur*sr), buf = new Float32Array(n);
+  const strs = chordStrings(chordBySymbol(sym)).filter(r => !r.muted), voices = [];
+  events.forEach(([t0, amp, dir]) => {
+    const list = dir === 'up' ? strs.slice(-4).reverse() : strs;
+    list.forEach((r, j) => voices.push({ s: r.string, f: midiToFreq(r.midi), t: t0 + j*(dir==='up'?0.006:0.009), amp }));
+  });
+  voices.sort((a, b) => a.t - b.t);
+  voices.forEach((v, k) => {
+    const next = voices.slice(k+1).find(w => w.s === v.s);
+    const s0 = Math.round(v.t*sr), s1 = Math.min(n, next ? Math.round(next.t*sr) : n);
+    for(let i = s0; i < s1; i++){
+      const t = (i-s0)/sr, env = v.amp*Math.min(1, t/0.002)*Math.exp(-t*2.5);
+      buf[i] += 0.05*env*(Math.sin(2*Math.PI*v.f*t) + 0.5*Math.sin(4*Math.PI*v.f*t) + 0.25*Math.sin(6*Math.PI*v.f*t));
+    }
+    for(let i = s0; i < Math.min(n, s0 + 0.004*sr); i++) buf[i] += 0.02*v.amp*(rand()-0.5)*Math.exp(-(i-s0)/sr/0.0015);
+  });
+  clicks.forEach(t0 => { const s0 = Math.round(t0*sr), L = Math.round(0.025*sr);
+    for(let i = 0; i < L && s0+i < n; i++) buf[s0+i] += 0.5*(0.5 - 0.5*Math.cos(2*Math.PI*i/L))*Math.sin(2*Math.PI*4000*i/sr); });
+  for(let i = 0; i < n; i++) buf[i] += 0.002*(rand()-0.5);
+  return buf;
+}
+function detectAll(buf){
+  const d = new OnsetDetector(sr), out = [];
+  for(let i = 0; i < buf.length; i += 800) out.push(...d.push(buf.subarray(i, i+800), i/sr));   // parca parca, tarayicidaki gibi
+  return out;
+}
+let tot = 0, got = 0, extraOn = 0, worst = 0, offSum = 0;
+for(const sym of ['G','Am','E']) for(const bpm of [70, 110, 150]) for(const { id } of RHYTHMS){
+  const r = rhythmById(id), dt = slotDur(bpm), ev = [], clicks = [];
+  for(let b = 0; b < 2; b++){
+    rhythmBar(r, bpm, 0.5 + b*r.slots.length*dt).forEach(e => ev.push([e.t, e.dir==='down' ? 1 : 0.5, e.dir]));
+    r.beats.forEach(k => clicks.push(0.5 + (b*r.slots.length + k)*dt));
+  }
+  const f = detectAll(strumSignal(ev, 0.5 + 2*r.slots.length*dt + 1, sym, clicks));
+  const sc = scoreTiming(ev.map(([t]) => ({ t })), f, dt, 0.02);
+  for(const h of sc.hits){ tot++; if(h.offset !== null){ got++; worst = Math.max(worst, Math.abs(h.offset)); offSum += h.offset; } }
+  extraOn += sc.extra;
+}
+ok(got === tot && extraOn === 0 && worst < 0.025, `${tot} vurusun hepsi 25 ms icinde yakalandi (3 akor x 3 tempo x ${RHYTHMS.length} kalip, tikli), fazla vurus yok`,
+   `${got}/${tot}, fazla ${extraOn}, en buyuk sapma ${(worst*1000).toFixed(1)} ms, ortalama ${(offSum/got*1000).toFixed(1)} ms`);
+const ck = []; for(let i = 0; i < 12; i++) ck.push(0.3 + i*0.4);
+ok(detectAll(strumSignal([], 5.5, 'G', ck)).length === 0, 'yalniz metronom tiki vurus sayilmiyor');
+const tooQuiet = strumSignal([[0.5, 0.02, 'down'], [1.0, 0.02, 'down']], 2, 'G');
+ok(detectAll(tooQuiet).length === 0, 'esigin altindaki cok kisik ses vurus sayilmiyor');
+
+console.log('\n[17] Ezgi icin parmak plani');
+const { planFingering, tunerReading, normalizeSymbol, soundingSymbol, ChangeCounter, parseSong, SONGS, parseMelody, MELODIES,
+        parseNoteName, earQuestion, EAR_MODES, makeRng, LESSONS, goalMet, lessonStatus, lessonCompletedBy } = core;
+const ode = parseMelody(MELODIES.find(m=>m.id==='nese').text).notes.map(n=>n.written);
+const odePlan = planFingering(ode);
+ok(odePlan.every(p => p.pos===1), 'Neseye Ovgu tamamen 1. pozisyonda');
+ok(odePlan.slice(0,9).map(p=>p.string+'/'+p.fret+'/'+p.finger).join(' ')==='4/2/2 4/2/2 4/3/3 3/0/0 3/0/0 4/3/3 4/2/2 4/0/0 5/3/3',
+   'Mi4 Mi4 Fa4 Sol4 Sol4 Fa4 Mi4 Re4 Do4: 4. tel 2 (orta), 3 (yuzuk), acik Sol, acik Re, 5. tel 3 (yuzuk)', odePlan.slice(0,9).map(p=>p.string+'/'+p.fret+'/'+p.finger).join(' '));
+let planErr = [];
+for(const m of MELODIES){
+  const ns = parseMelody(m.text).notes.map(n=>n.written), pl = planFingering(ns);
+  pl.forEach((p,i) => {
+    if(p.string===null) planErr.push(m.id+' '+i+': calinamadi');
+    else if(positionNote(p.string,p.fret)!==ns[i]) planErr.push(m.id+' '+i+': yanlis nota');
+    else if(p.fret>0 && (p.finger<1 || p.finger>4 || p.fret!==p.pos+p.finger-1)) planErr.push(m.id+' '+i+': parmak/pozisyon tutarsiz');
+  });
+}
+ok(planErr.length===0, 'butun hazir ezgilerin plani tutarli (dogru nota, parmak = perde - pozisyon + 1)', planErr.join(' | '));
+const high = planFingering([76, 77, 79, 81, 83, 84]);       // yazili Mi5'ten Do6'ya: 1. pozisyon disina cikar
+ok(high.every(p => p.fret===0 || (p.finger>=1 && p.finger<=4)) && new Set(high.filter(p=>p.fret>0).map(p=>p.pos)).size===1,
+   'tiz dizi tek pozisyonda, her perdeye bir parmak', high.map(p=>p.string+'/'+p.fret+'f'+p.finger+'p'+p.pos).join(' '));
+ok(describePosition({string:1, fret:7})[2].text.includes('serçe'), 'tek notada 5. perde ustu: isaret ya da serce secenegi yaziliyor');
+
+console.log('\n[18] Akort olcumu');
+const tr6 = tunerReading(midiToFreq(40) * Math.pow(2, -20/1200));
+ok(tr6.string===6 && tr6.cents===-20 && tr6.advice==='sık', '6. tel 20 sent pes: sik', JSON.stringify(tr6));
+const tr2 = tunerReading(midiToFreq(59) * Math.pow(2, 4/1200));
+ok(tr2.string===2 && tr2.advice==='tamam', '2. tel +4 sent: tamam', JSON.stringify(tr2));
+ok(tunerReading(midiToFreq(45)*1.02, 5).advice==='gevşet', 'secili telde tiz: gevset');
+setTuning('dropd'); ok(tunerReading(midiToFreq(38)).string===6, 'Drop D: Re2 6. tel'); setTuning('standart');
+
+console.log('\n[19] Akor yazimi, capo, akor degistirme sayaci');
+ok(normalizeSymbol('F#m')==='F♯m' && normalizeSymbol('bb')==='B♭' && chordBySymbol('A#')?.symbol==='B♭' && chordBySymbol('Gb')===null,
+   'klavye yazimi ve enharmonik (A# = B♭; G♭ akoru yok)');
+const gCh = chordBySymbol('G');
+ok(soundingSymbol(gCh, 2)==='A' && chordStrings(gCh, 2)[0].midi===45 && chordPcs(gCh, 2).join()==='9,1,4', 'capo 2: G sekli A olarak duyulur');
+ok(chordCheck(strum('A'), gCh, 2).ok && !chordCheck(strum('A'), gCh, 0).ok, 'capo hesaba katilarak akor kontrolu');
+const cc = new ChangeCounter(chordBySymbol('Em'), chordBySymbol('Am'));
+const emF = strum('Em'), amF = strum('Am'), cF = strum('C');
+const seq = [emF, emF, emF, null, amF, amF, emF, emF, amF, emF, emF, cF, cF, amF, amF];
+seq.forEach(f => cc.push(f));
+ok(cc.changes===3, 'Em→Am→Em→Am: 3 gecis (tek karelik Am ve araya giren C sayilmaz)', 'sayilan '+cc.changes);
+
+console.log('\n[20] Sarkilar ve ezgiler');
+const ag = parseSong(SONGS.find(s=>s.id==='amazing-grace').text);
+ok(ag.errors.length===0 && ag.bars.length===16 && ag.bars.slice(0,5).join()==='G,G,C,G,G', 'Amazing Grace: 16 olcu, G G C G G …', ag.bars.join(','));
+ok(ag.lines[0][0].lyric==='A' && ag.lines[0][1].chord==='G' && ag.lines[0][1].bar===0 && ag.lines[0][1].lyric.startsWith('mazing'), 'on vurus sozu akorsuz parca');
+let songErr = [];
+for(const s of SONGS){ const p = parseSong(s.text); if(p.errors.length || !p.bars.length || !rhythmById(s.rhythm)) songErr.push(s.id); }
+ok(songErr.length===0, 'butun hazir sarkilar ayristiriliyor, akorlari ve ritimleri var', songErr.join(','));
+const bad = parseSong('[F#m]bir [Xyz]iki [Bb*3]uc');
+ok(bad.errors.join()==='Xyz' && bad.bars.join()==='F♯m,B♭,B♭,B♭', 'taninmayan akor hata, klavye yazimi ve *3 calisiyor');
+ok(parseNoteName('Mi4')===64 && parseNoteName('Fa#4')===66 && parseNoteName('Sib3')===58 && parseNoteName('sol3')===55 && parseNoteName('Xx4')===null, 'nota adi ayristirma');
+const pm = parseMelody('Do4 Re4:2 Mi4:0,5 Foo4');
+ok(pm.notes.length===3 && pm.notes[1].beats===2 && pm.notes[2].beats===0.5 && pm.errors.join()==='Foo4', 'ezgi metni: sure ve hata');
+ok(MELODIES.every(m => parseMelody(m.text).errors.length===0), 'butun hazir ezgiler hatasiz');
+
+console.log('\n[21] Kulak egitimi');
+const rng = makeRng(42), seen = {};
+let earErr = [];
+for(const mode in EAR_MODES) for(let i=0;i<200;i++){
+  const q = earQuestion(mode, rng);
+  seen[mode+':'+q.answer] = 1;
+  if(!EAR_MODES[mode].answers.some(a=>a[0]===q.answer)) earErr.push(mode+' gecersiz cevap');
+  if(mode.startsWith('kalite') && q.notes.join() !== CHORD_TYPES[q.answer].iv.map(v=>q.notes[0]+v).join()) earErr.push(mode+' akor sesleri');
+  if(mode==='aralik' && q.notes[1]-q.notes[0]!==q.answer) earErr.push('aralik');
+  if(mode==='tel' && q.notes[0]!==TUNINGS.standart.strings[6-q.answer]) earErr.push('tel');
+}
+ok(earErr.length===0, 'sorular dogru sesleri ve cevabi uretiyor', earErr.slice(0,3).join(','));
+ok(Object.keys(EAR_MODES).every(m => EAR_MODES[m].answers.every(a => seen[m+':'+a[0]])), '200 soruda her cevap en az bir kez cikiyor');
+
+console.log('\n[22] Dersler');
+ok(new Set(LESSONS.map(l=>l.id)).size===LESSONS.length, 'ders kimlikleri tekil');
+let lesErr = [];
+for(const l of LESSONS){
+  const g = l.goal;
+  if(g.type==='chord' && !chordBySymbol(g.chord)) lesErr.push(l.id+': akor yok');
+  if(g.type==='rhythm' && !rhythmById(g.id)) lesErr.push(l.id+': ritim yok');
+  if(g.type==='changes' && !g.pair.every(chordBySymbol)) lesErr.push(l.id+': akor yok');
+  if(g.type==='ear' && !EAR_MODES[g.mode]) lesErr.push(l.id+': kulak modu yok');
+  if(g.type==='melody' && !MELODIES.some(m=>m.id===g.id)) lesErr.push(l.id+': ezgi yok');
+  if(g.type==='song' && !SONGS.some(s=>s.id===g.id)) lesErr.push(l.id+': sarki yok');
+  if(g.type==='song'){ const song = parseSong(SONGS.find(s=>s.id===g.id).text);
+    const learned = LESSONS.slice(0, LESSONS.indexOf(l)).filter(x=>x.goal.type==='chord').map(x=>x.goal.chord);
+    if(!song.bars.every(b => learned.includes(b))) lesErr.push(l.id+': sarkida henuz ogretilmemis akor'); }
+}
+ok(lesErr.length===0, 'her dersin hedefi var olan icerige bagli; sarki dersi yalniz ogretilmis akorlari kullaniyor', lesErr.join(' | '));
+ok(lessonStatus({}).join()===['open', ...LESSONS.slice(1).map(()=>'locked')].join(), 'basta yalniz ilk ders acik');
+ok(lessonStatus({akort:true})[1]==='open' && lessonStatus({akort:true})[2]==='locked', 'ders bitince sonraki acilir');
+ok(lessonCompletedBy({}, {type:'tuned'})==='akort' && lessonCompletedBy({}, {type:'chordClean', chord:'Em'})===null, 'yalniz acik ders tamamlanir');
+ok(goalMet({type:'rhythm', id:'pop', bpm:70, pct:80}, {type:'rhythm', id:'pop', bpm:75, pct:85, bars:4}) &&
+   !goalMet({type:'rhythm', id:'pop', bpm:70, pct:80}, {type:'rhythm', id:'pop', bpm:65, pct:95, bars:4}) &&
+   goalMet({type:'changes', pair:['Em','Am'], min:15}, {type:'changes', pair:['Am','Em'], perMin:16}), 'hedef karsilastirma (tempo alti gecmez, cift sirasi onemsiz)');
+
+console.log('\n[23] Uygulama dosyalari');
+const scripts = [...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
+ok(scripts.every(f => fs.existsSync(path.join(__dirname, f))), 'index.html\'deki her betik dosyasi var', scripts.filter(f=>!fs.existsSync(path.join(__dirname,f))).join(','));
+ok(CORE.every(f => scripts.includes('js/core/'+f+'.js')) && scripts.indexOf('js/core/music.js') < scripts.indexOf('js/core/guitar.js'),
+   'cekirdek dosyalar testtekiyle ayni sirada yukleniyor');
+// Klasik betikler ayni genel kapsami paylasir: iki dosyada ayni ust duzey ad tanimlanirsa tarayici hata verir
+const decl = {};
+for(const f of scripts) for(const m of read(f).matchAll(/^(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/gm)){
+  (decl[m[1]] = decl[m[1]] || []).push(f);
+}
+const dup = Object.entries(decl).filter(([,fs]) => fs.length > 1).map(([n,fs]) => n+' ('+fs.join(', ')+')');
+ok(dup.length===0, 'betikler arasinda ayni ust duzey ad yok', dup.join(' | '));
+const sw = read('sw.js'), shell = [...sw.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
+const assets = [...scripts, ...[...html.matchAll(/<link rel="stylesheet" href="([^"h][^"]*)"/g)].map(m=>m[1])];
+ok(assets.every(a => shell.includes(a)), 'cevrimdisi onbellek butun betik ve stil dosyalarini iceriyor', assets.filter(a=>!shell.includes(a)).join(','));
+
+console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
+process.exit(fail?1:0);

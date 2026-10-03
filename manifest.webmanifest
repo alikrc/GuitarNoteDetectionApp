@@ -1,0 +1,14 @@
+{
+  "name": "Gitar Dinleyici",
+  "short_name": "Gitar",
+  "description": "Gitar için nota, AEU perdesi, sent/koma sapması ve sapta tel–perde konumu gösteren akort aracı.",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ECEFEE",
+  "theme_color": "#1C5B59",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

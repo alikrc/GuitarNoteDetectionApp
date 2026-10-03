@@ -1,0 +1,10 @@
+{
+  "name": "guitar-note-detection-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gitar için mikrofonla nota, AEU perdesi ve sapta tel-perde konumu gösteren akort aracı",
+  "scripts": {
+    "test": "node test.js",
+    "start": "npx --yes http-server -c-1 -p 8080 ."
+  }
+}

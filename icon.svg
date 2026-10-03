@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1C5B59"/>
+  <rect x="196" y="60" width="120" height="392" rx="10" fill="#ECEFEE"/>
+  <rect x="196" y="60" width="120" height="14" fill="#A8502A"/>
+  <g stroke="#1C5B59" stroke-width="5">
+    <line x1="196" y1="140" x2="316" y2="140"/><line x1="196" y1="214" x2="316" y2="214"/>
+    <line x1="196" y1="282" x2="316" y2="282"/><line x1="196" y1="344" x2="316" y2="344"/>
+    <line x1="196" y1="400" x2="316" y2="400"/>
+  </g>
+  <g stroke="#5B6A67" stroke-width="3">
+    <line x1="216" y1="60" x2="216" y2="452"/><line x1="234" y1="60" x2="234" y2="452"/>
+    <line x1="252" y1="60" x2="252" y2="452"/><line x1="270" y1="60" x2="270" y2="452"/>
+    <line x1="288" y1="60" x2="288" y2="452"/><line x1="306" y1="60" x2="306" y2="452"/>
+  </g>
+  <circle cx="252" cy="177" r="15" fill="#A8502A"/>
+  <circle cx="288" cy="248" r="15" fill="#A8502A"/>
+</svg>
