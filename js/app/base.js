@@ -10,7 +10,7 @@ function svgEl(tag, attrs, text){
   if(text) e.textContent = text;
   return e;
 }
-const shortName = w => NOTE_TR[((w % 12) + 12) % 12];
+const shortName = w => pcName(w);          // seçili dilde nota adı, oktavsız
 
 // Tarayıcıda saklanan ayarlar; klarnet uygulamasıyla aynı sitede çakışmasın diye "gt." önekli
 const store = {
@@ -21,8 +21,14 @@ const settings = {
   a4: store.get("a4", 440),
   sens: store.get("sens", 5),
   tuning: store.get("tuning", "standart"),
-  instrument: store.get("instrument", "akustik")
+  instrument: store.get("instrument", "akustik"),
+  lang: store.get("lang", null),
+  theme: store.get("theme", "auto")
 };
+// Dil: kayıtlı yoksa tarayıcının diline göre (Türkçe değilse İngilizce). Modüller çizilmeden önce ayarlanır.
+if(!LANGS.includes(settings.lang)) settings.lang = (navigator.language || "tr").toLowerCase().startsWith("tr") ? "tr" : "en";
+setLang(settings.lang);
+if(!["auto", "light", "dark"].includes(settings.theme)) settings.theme = "auto";
 if(!(settings.a4 >= 430 && settings.a4 <= 450)) settings.a4 = 440;
 if(!(settings.sens >= 1 && settings.sens <= 10)) settings.sens = 5;
 if(!TUNINGS[settings.tuning]) settings.tuning = "standart";
@@ -160,6 +166,19 @@ const Snd = (() => {
   };
 })();
 
+defStr({
+  "mic.start":      { tr:"Mikrofonu başlat", en:"Start microphone" },
+  "mic.stop":       { tr:"Mikrofonu durdur", en:"Stop microphone" },
+  "mic.off":        { tr:"mikrofon kapalı", en:"microphone off" },
+  "mic.nohttps":    { tr:"bu ortamda mikrofon açılamıyor (https gerekli)", en:"microphone unavailable here (https required)" },
+  "mic.asking":     { tr:"izin bekleniyor", en:"waiting for permission" },
+  "mic.failed":     { tr:"mikrofon açılamadı ({err})", en:"microphone failed ({err})" },
+  "mic.listening":  { tr:"dinliyor", en:"listening" },
+  "mic.stopped":    { tr:"durdu", en:"stopped" },
+  "mic.silent":     { tr:"sessiz", en:"silent" },
+  "mic.muted":      { tr:"örnek ses çalıyor", en:"playing example sound" }
+});
+
 // ---- Mikrofon ----
 // Döngü her karede çalışır: ritim için vuruş yakalama her karede, perde bulma 45 ms'de bir. Sonuçlar Bus ile yayılır:
 // frame {now, d (perde bulucu sonucu), buf, sr, loud}, note {r (analyze), now, isNew}, silence {now}, muted.
@@ -168,6 +187,10 @@ const Mic = (() => {
   let ctx = null, stream = null, source = null, analyser = null, buf = null;
   let running = false, starting = false, raf = null, lastT = 0;
   const hist = [], stab = new NoteStabilizer(3);
+  // Durum yazısı: anahtar saklanır ki dil değişince yeniden yazılsın
+  let chipKey = "mic.off", chipVars = null;
+  function setChip(key, vars){ if(key === chipKey && !vars) return; chipKey = key; chipVars = vars || null; chip.textContent = t(key, vars); }
+  Bus.on("lang", () => { chip.textContent = t(chipKey, chipVars); btn.textContent = t(running ? "mic.stop" : "mic.start"); });
   const onsetSubs = new Set();
   let onsetDet = null, lastFeedT = null;
 
@@ -191,14 +214,14 @@ const Mic = (() => {
   async function start(){
     if(running || starting) return running;
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-      chip.textContent = "bu ortamda mikrofon açılamıyor (https gerekli)"; return false;
+      setChip("mic.nohttps"); return false;
     }
-    starting = true; btn.disabled = true; chip.textContent = "izin bekleniyor";
+    starting = true; btn.disabled = true; setChip("mic.asking");
     try{
       stream = await navigator.mediaDevices.getUserMedia({ audio:{
         echoCancellation:false, noiseSuppression:false, autoGainControl:false }});
     }catch(e){
-      chip.textContent = "mikrofon açılamadı (" + e.name + ")";
+      setChip("mic.failed", { err: e.name });
       starting = false; btn.disabled = false;
       return false;
     }
@@ -211,8 +234,8 @@ const Mic = (() => {
     buf = new Float32Array(analyser.fftSize);
     resetNote(); lastFeedT = null; onsetDet = null;
     running = true; starting = false; btn.disabled = false;
-    btn.textContent = "Mikrofonu durdur"; btn.classList.add("listening");
-    chip.textContent = "dinliyor"; chip.classList.add("live");
+    btn.textContent = t("mic.stop"); btn.classList.add("listening");
+    setChip("mic.listening"); chip.classList.add("live");
     keepAwake();
     Bus.emit("mic", true);
     loop();
@@ -228,8 +251,8 @@ const Mic = (() => {
     stream = source = analyser = null;
     resetNote();
     lvbar.style.width = "0"; lvbar.classList.remove("hot");
-    btn.textContent = "Mikrofonu başlat"; btn.classList.remove("listening");
-    chip.textContent = "durdu"; chip.classList.remove("live");
+    btn.textContent = t("mic.start"); btn.classList.remove("listening");
+    setChip("mic.stopped"); chip.classList.remove("live");
     Bus.emit("mic", false);
   }
   function resetNote(){ hist.length = 0; stab.reset(); }
@@ -258,7 +281,7 @@ const Mic = (() => {
     analyser.getFloatTimeDomainData(buf);
     // Uygulamanın çaldığı ses hoparlörden mikrofona girmesin
     if(Snd.busy()){
-      chip.textContent = "örnek ses çalıyor";
+      setChip("mic.muted");
       resetNote();
       Bus.emit("muted");
       return;
@@ -274,12 +297,12 @@ const Mic = (() => {
       const r = analyze(med, T);
       const prev = stab.shown;
       if(stab.push(noteKey(r))){
-        chip.textContent = "dinliyor";
+        setChip("mic.listening");
         Bus.emit("note", { r, now, isNew: stab.shown !== prev });
       }
     }else{
       resetNote();
-      chip.textContent = "sessiz";
+      setChip("mic.silent");
       Bus.emit("silence", { now });
     }
   }
@@ -289,6 +312,7 @@ const Mic = (() => {
     return () => onsetSubs.delete(fn);
   }
   btn.addEventListener("click", () => running ? stop() : start());
+  btn.textContent = t("mic.start"); chip.textContent = t("mic.off");
   return {
     start, stop, onOnset, resetNote, dbPos,
     get running(){ return running; },

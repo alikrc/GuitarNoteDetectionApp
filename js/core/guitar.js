@@ -5,10 +5,10 @@ const GUITAR_TRANSPOSE = 12;      // gitar yazıldığından bir oktav pes duyul
 
 // Çalgı türü: perde sayısı ve tını. Perde sayıları tipik değerler; modele göre değişebilir.
 const INSTRUMENTS = {
-  klasik:    { name:"Klasik gitar (naylon tel) · 19 perde", frets:19 },
-  akustik:   { name:"Akustik gitar (çelik tel) · 20 perde", frets:20 },
-  elektro22: { name:"Elektro gitar · 22 perde",             frets:22 },
-  elektro24: { name:"Elektro gitar · 24 perde",             frets:24 }
+  klasik:    { name:"Klasik gitar (naylon tel) · 19 perde", name_en:"Classical guitar (nylon) · 19 frets", short:"Klasik",  short_en:"Classical", frets:19 },
+  akustik:   { name:"Akustik gitar (çelik tel) · 20 perde", name_en:"Acoustic guitar (steel) · 20 frets",  short:"Akustik", short_en:"Acoustic",  frets:20 },
+  elektro22: { name:"Elektro gitar · 22 perde",             name_en:"Electric guitar · 22 frets",          short:"Elektro", short_en:"Electric",  frets:22 },
+  elektro24: { name:"Elektro gitar · 24 perde",             name_en:"Electric guitar · 24 frets",          short:"Elektro", short_en:"Electric",  frets:24 }
 };
 let INSTRUMENT = "akustik", FRETS = 20;      // sapta 0 (açık tel) – FRETS. perde
 function setInstrument(k){
@@ -19,12 +19,12 @@ function getInstrument(){ return INSTRUMENT; }
 function getFrets(){ return FRETS; }
 // Akortlar: kalın telden (6.) inceye (1.) açık tel sesleri, duyulan MIDI.
 const TUNINGS = {
-  standart: { name:"Standart · Mi La Re Sol Si Mi",  strings:[40,45,50,55,59,64] },
-  dropd:    { name:"Drop D · Re La Re Sol Si Mi",    strings:[38,45,50,55,59,64] },
-  yarim:    { name:"Yarım ses pes · Mi♭",            strings:[39,44,49,54,58,63] },
-  dadgad:   { name:"DADGAD · Re La Re Sol La Re",    strings:[38,45,50,55,57,62] },
-  openg:    { name:"Açık Sol · Re Sol Re Sol Si Re", strings:[38,43,50,55,59,62] },
-  opend:    { name:"Açık Re · Re La Re Fa♯ La Re",   strings:[38,45,50,54,57,62] }
+  standart: { name:"Standart · Mi La Re Sol Si Mi",  name_en:"Standard · E A D G B E",  strings:[40,45,50,55,59,64] },
+  dropd:    { name:"Drop D · Re La Re Sol Si Mi",    name_en:"Drop D · D A D G B E",    strings:[38,45,50,55,59,64] },
+  yarim:    { name:"Yarım ses pes · Mi♭",            name_en:"Half step down · E♭",     strings:[39,44,49,54,58,63] },
+  dadgad:   { name:"DADGAD · Re La Re Sol La Re",    name_en:"DADGAD · D A D G A D",    strings:[38,45,50,55,57,62] },
+  openg:    { name:"Açık Sol · Re Sol Re Sol Si Re", name_en:"Open G · D G D G B D",    strings:[38,43,50,55,59,62] },
+  opend:    { name:"Açık Re · Re La Re Fa♯ La Re",   name_en:"Open D · D A D F♯ A D",   strings:[38,45,50,54,57,62] }
 };
 let TUNING = "standart";
 function setTuning(k){
@@ -53,22 +53,36 @@ function positionsFor(written){
 // Sapta basılan konumun yazılı notası
 function positionNote(string, fret){ return stringOpen(string) + fret + GUITAR_TRANSPOSE; }
 
-// Konumu adım adım okunur Türkçe talimata çevirir.
-const FINGER_TR = ["işaret","orta","yüzük","serçe"];
-function stringName(s){ return NOTE_TR[stringOpen(s)%12] + " teli"; }
+// Konumu adım adım okunur talimata çevirir.
+defStr({
+  "finger.1": { tr:"işaret", en:"index" }, "finger.2": { tr:"orta", en:"middle" },
+  "finger.3": { tr:"yüzük", en:"ring" },   "finger.4": { tr:"serçe", en:"little" },
+  "pos.part.string": { tr:"Tel", en:"String" }, "pos.part.fret": { tr:"Perde", en:"Fret" },
+  "pos.part.left": { tr:"Sol el", en:"Left hand" }, "pos.part.right": { tr:"Sağ el", en:"Right hand" },
+  "pos.stringName": { tr:"{note} teli", en:"{note} string" },
+  "pos.string": { tr:"{s}. tel ({name})", en:"string {s} ({name})" },
+  "pos.open": { tr:"açık tel, perdeye basma", en:"open string, don't fret" },
+  "pos.press": { tr:"{f}. perdeye bas", en:"press fret {f}" },
+  "pos.idle": { tr:"boşta", en:"free" },
+  "pos.first": { tr:"{finger} parmağı (1. pozisyon)", en:"{finger} finger (1st position)" },
+  "pos.high": { tr:"işaret parmağı ({p}. pozisyon) ya da serçe parmağı ({q}. pozisyon); ezgide komşu notalara göre seçilir",
+                en:"index finger (position {p}) or little finger (position {q}); in melodies it depends on the neighbouring notes" },
+  "pos.pluck": { tr:"{s}. teli çek", en:"pluck string {s}" }
+});
+const fingerName = i => t("finger." + i);
+function stringName(s){ return t("pos.stringName", { note: pcName(stringOpen(s)) }); }
 // Tek nota için sol el: 1–4. perde "her perdeye bir parmak" kuralıyla 1. pozisyonda çalınır. Daha tizde hangi
 // parmağın basacağı komşu notalara bağlıdır; iki uç seçenek yazılır (işaret ya da serçe). Ezgilerde planFingering
 // komşu notalara göre tek bir parmak seçer.
 function describePosition(p){
-  const left = p.fret===0 ? "boşta"
-             : p.fret<=4 ? FINGER_TR[p.fret-1] + " parmağı (1. pozisyon)"
-             : "işaret parmağı (" + p.fret + ". pozisyon) ya da serçe parmağı (" + (p.fret-3) +
-               ". pozisyon); ezgide komşu notalara göre seçilir";
+  const left = p.fret===0 ? t("pos.idle")
+             : p.fret<=4 ? t("pos.first", { finger: fingerName(p.fret) })
+             : t("pos.high", { p: p.fret, q: p.fret - 3 });
   return [
-    { part:"Tel",    text: p.string + ". tel (" + stringName(p.string) + ")", active:true },
-    { part:"Perde",  text: p.fret===0 ? "açık tel, perdeye basma" : p.fret + ". perdeye bas", active: p.fret>0 },
-    { part:"Sol el", text: left, active: p.fret>0 },
-    { part:"Sağ el", text: p.string + ". teli çek", active:true }
+    { part:t("pos.part.string"), text: t("pos.string", { s: p.string, name: stringName(p.string) }), active:true },
+    { part:t("pos.part.fret"),   text: p.fret===0 ? t("pos.open") : t("pos.press", { f: p.fret }), active: p.fret>0 },
+    { part:t("pos.part.left"),   text: left, active: p.fret>0 },
+    { part:t("pos.part.right"),  text: t("pos.pluck", { s: p.string }), active:true }
   ];
 }
 // Konumun tab gösterimi: üstte 1. tel, altta 6. tel.

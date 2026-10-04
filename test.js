@@ -1,6 +1,6 @@
 // Testler: js/core/*.js dosyaları tarayıcıdaki sırayla bir vm bağlamına yüklenir ve oradaki adlar kullanılır.
 const fs = require('fs'), path = require('path'), vm = require('vm');
-const CORE = ['music', 'guitar', 'chords', 'rhythm', 'songs', 'ear', 'lessons'];
+const CORE = ['i18n', 'music', 'guitar', 'chords', 'rhythm', 'songs', 'ear', 'lessons'];
 const ctx = vm.createContext({ console });
 for(const f of CORE) vm.runInContext(fs.readFileSync(path.join(__dirname, 'js/core', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
 const core = new Proxy({}, { get: (_, k) => vm.runInContext(String(k), ctx) });

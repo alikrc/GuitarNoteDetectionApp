@@ -17,6 +17,9 @@ function noteName(m){
   const pc = ((m%12)+12)%12, oct = Math.floor(m/12)-1;
   return { tr: NOTE_TR[pc]+oct, en: NOTE_EN[pc]+oct };
 }
+// Seçili dilde nota adı: Türkçede Do Re Mi, İngilizcede C D E
+function noteLabel(m){ return noteName(m)[LANG === "en" ? "en" : "tr"]; }
+function pcName(pc){ return (LANG === "en" ? NOTE_EN : NOTE_TR)[((pc % 12) + 12) % 12]; }
 // Gitar anahtarlı (altında 8 olan sol anahtarı) dizekte yazılı notanın yeri. step: alt çizgi (Mi4) 0,
 // her çizgi/aralık 1 adım; 0, 2, 4, 6, 8 dizek çizgileri, eksi ve 8'den büyük çift adımlar ek çizgi.
 // Sol♯6 ve üstü (5'ten fazla ek çizgi) bir oktav aşağı yazılıp üstüne 8va konur.

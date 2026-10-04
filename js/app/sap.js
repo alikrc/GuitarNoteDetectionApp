@@ -1,6 +1,39 @@
 // Sap ve notalar sekmesi: duyulan nota ve sapma göstergesi, gitar sapı, konum talimatı, dizek, nota şeridi,
 // klavyeden çalma, entonasyon izi.
 const Sap = (() => {
+  defStr({
+    "sap.posAria":   { tr:"{s}. tel, {where}: {note} (yazılı)", en:"string {s}, {where}: {note} (written)" },
+    "sap.open":      { tr:"açık", en:"open" },
+    "sap.fret":      { tr:"{f}. perde", en:"fret {f}" },
+    "sap.pressed":   { tr:"{s}. tel, {where} — {note} yazılı", en:"string {s}, {where} — written {note}" },
+    "sap.posLabel":  { tr:"{s}. tel · {f}", en:"string {s} · {f}" },
+    "sap.altAria":   { tr:"{s}. tel, {where}", en:"string {s}, {where}" },
+    "sap.openString":{ tr:"açık tel", en:"open string" },
+    "sap.basicAria": { tr:", temel konum", en:", basic position" },
+    "sap.basic":     { tr:"Temel konum: en alçak perde.", en:"Basic position: the lowest fret." },
+    "sap.altHigh":   { tr:"Aynı ses, kalın telde ve sapın tiz bölgesinde: daha koyu, yumuşak tını.",
+                       en:"Same pitch on a thicker string, high up the neck: darker, softer tone." },
+    "sap.alt":       { tr:"Aynı ses, kalın telde: biraz daha koyu tını; pozisyon değiştirmeden çalmak için.",
+                       en:"Same pitch on a thicker string: a slightly darker tone; useful to stay in position." },
+    "sap.staffAria": { tr:"Dizekte yazılı {note}", en:"Written {note} on the staff" },
+    "sap.ottava":    { tr:", 8va ile bir oktav aşağı yazılmış", en:", written an octave lower with 8va" },
+    "sap.staffNone": { tr:"Dizek: nota yok", en:"Staff: no note" },
+    "sap.written":   { tr:"yazılı", en:"written" },
+    "sap.notOnNeck": { tr:"Bu nota seçili akortta sapta yok (yazılı {low}–{high} arası).", en:"This note isn't on the neck in the selected tuning (written {low}–{high})." },
+    "sap.sounding":  { tr:"duyulan {note}", en:"sounds as {note}" },
+    "sap.outRange":  { tr:"yazılı {note} — seçili akortta sapta yok", en:"written {note} — not on the neck in this tuning" },
+    "sap.openStr":   { tr:" · açık {s}. tel", en:" · open string {s}" },
+    "sap.cents":     { tr:"tampere notadan sapma: {c} sent", en:"off the tempered note: {c} cents" },
+    "sap.onePos":    { tr:"tek konum", en:"one position" },
+    "sap.nPos":      { tr:"{n} konumda çalınır", en:"playable in {n} positions" },
+    "sap.playAria":  { tr:"yazılı {note} çal", en:"play written {note}" },
+    "sap.strip":     { tr:"Alt sıra <strong>Z…</strong> kalın teller, orta sıra <strong>A…</strong>, üst sıra <strong>Q…</strong>, rakam sırası <strong>1…</strong> tiz bölge — yazılı {low}’ten {high}’ya {n} nota{extra}. Kartın üstünde notanın temel konumu (tel · perde) yazar. Tuşlar klavyedeki fiziksel konuma göre çalışır; aynı tuş ya da Esc sesi durdurur.",
+                       en:"Bottom row <strong>Z…</strong> thick strings, middle row <strong>A…</strong>, top row <strong>Q…</strong>, number row <strong>1…</strong> high register — {n} notes from written {low} to {high}{extra}. Each card shows the note's basic position (string · fret). Keys follow their physical position on the keyboard; the same key or Esc stops the sound." },
+    "sap.stripExtra":{ tr:" (en tiz {n} tanesi yalnızca tıklanır)", en:" (the highest {n} can only be clicked)" },
+    "sap.announce":  { tr:"yazılı {note}", en:"written {note}" }
+  });
+  const where = f => f === 0 ? t("sap.open") : t("sap.fret", { f });
+  const otherName = m => noteName(m)[getLang() === "en" ? "tr" : "en"];   // ikinci yazım: diğer dildeki ad
   const noteEl=$("perde"), subEl=$("koma"), needle=$("needle"), centtxt=$("centtxt"), track=$("track");
   const writtenEl=$("written"), soundEl=$("sounding"), hzEl=$("hz"),
         fcode=$("fcode"), regEl=$("reg"), fnote=$("fnote"), stepsEl=$("steps"), announce=$("announce");
@@ -79,7 +112,7 @@ const Sap = (() => {
       const [s, f] = key.split("-").map(Number);
       const w = positionNote(s, f);
       g.querySelector("text").textContent = shortName(w);
-      g.setAttribute("aria-label", s + ". tel, " + (f===0 ? "açık" : f + ". perde") + ": " + noteName(w).tr + " (yazılı)");
+      g.setAttribute("aria-label", t("sap.posAria", { s, where: where(f), note: noteLabel(w) }));
     });
   }
   // Klavyeyle sapta gezinme: tek bir konum sekme sırasında; oklar tel/perde değiştirir
@@ -112,7 +145,7 @@ const Sap = (() => {
   }
 
   // ---- Saptan çal: bir konuma dokun ----
-  const manualMsg = $("manualmsg"), MANUAL_HINT = manualMsg.textContent;
+  const manualMsg = $("manualmsg"), MANUAL_HINT = () => t("h.manualmsg");
   function chartPress(s, f){
     const w = positionNote(s, f);
     const cur = fingerList[fingerIdx];
@@ -120,7 +153,7 @@ const Sap = (() => {
     play(w);
     show(analyze(writtenFreq(w, T), T));
     selectFingering(fingerList.findIndex(p => p.string === s && p.fret === f));
-    manualMsg.textContent = s + ". tel, " + (f===0 ? "açık" : f + ". perde") + " — " + noteName(w).tr + " yazılı";
+    manualMsg.textContent = t("sap.pressed", { s, where: where(f), note: noteLabel(w) });
   }
 
   // Notanın konumları arasında seçim: her konum bir düğme
@@ -131,15 +164,15 @@ const Sap = (() => {
   detailEl.open = store.get("detailOpen", true);
   detailEl.addEventListener("toggle", () => store.set("detailOpen", detailEl.open));
 
-  const posLabel = p => p.string + ". tel · " + (p.fret===0 ? "açık" : p.fret);
+  const posLabel = p => t("sap.posLabel", { s: p.string, f: p.fret===0 ? t("sap.open") : p.fret });
   function showFingerings(list, written){
     fingerList = list; fingerWritten = written; fingerIdx = 0;
     altCountEl.textContent = list.length > 1 ? "· " + list.length + " konum" : "";
-    manualMsg.textContent = MANUAL_HINT;
+    manualMsg.textContent = MANUAL_HINT();
     altsEl.innerHTML = "";
     if(list.length > 1) list.forEach((p, i) => {
       const b = radioBtn(posLabel(p), false, () => selectFingering(i));
-      b.setAttribute("aria-label", p.string + ". tel, " + (p.fret===0 ? "açık tel" : p.fret + ". perde") + (i===0 ? ", temel konum" : ""));
+      b.setAttribute("aria-label", t("sap.altAria", { s: p.string, where: p.fret===0 ? t("sap.openString") : t("sap.fret", { f: p.fret }) }) + (i===0 ? t("sap.basicAria") : ""));
       altsEl.appendChild(b);
     });
     selectFingering(0);
@@ -147,10 +180,8 @@ const Sap = (() => {
   function altNote(i){
     const p = fingerList[i];
     if(!p) return "";
-    if(i===0) return fingerList.length > 1 ? "Temel konum: en alçak perde." : "";
-    return p.fret >= 12
-      ? "Aynı ses, kalın telde ve sapın tiz bölgesinde: daha koyu, yumuşak tını."
-      : "Aynı ses, kalın telde: biraz daha koyu tını; pozisyon değiştirmeden çalmak için.";
+    if(i===0) return fingerList.length > 1 ? t("sap.basic") : "";
+    return t(p.fret >= 12 ? "sap.altHigh" : "sap.alt");
   }
   function selectFingering(i){
     if(i < 0) i = 0;
@@ -174,7 +205,7 @@ const Sap = (() => {
     for(let s = 0; s <= 8; s += 2) staffEl.appendChild(svgEl("line", {class:"sl", x1:4, x2:146, y1:sy(s), y2:sy(s)}));
     staffEl.appendChild(svgEl("text", {class:"clef", x:6, y:sy(-1.5)}, "𝄞"));
     staffEl.appendChild(svgEl("text", {class:"c8", x:19, y:sy(-5.5)}, "8"));
-    if(written == null){ staffEl.setAttribute("aria-label", "Dizek: nota yok"); return; }
+    if(written == null){ staffEl.setAttribute("aria-label", t("sap.staffNone")); return; }
     const p = staffPos(written);
     for(let s = -2; s >= p.step; s -= 2)
       staffEl.appendChild(svgEl("line", {class:"ledger", x1:NOTE_X-11, x2:NOTE_X+11, y1:sy(s), y2:sy(s)}));
@@ -184,20 +215,19 @@ const Sap = (() => {
       transform:"rotate(-20 " + NOTE_X + " " + sy(p.step) + ")"}));
     if(p.acc) staffEl.appendChild(svgEl("text", {class:"acc", x:NOTE_X-17, y:sy(p.step)+5}, p.acc));
     if(p.ottava) staffEl.appendChild(svgEl("text", {class:"va", x:NOTE_X-12, y:Math.min(sy(p.step), sy(10))-10}, "8va"));
-    staffEl.setAttribute("aria-label", "Dizekte yazılı " + noteName(written).tr + (p.ottava ? ", 8va ile bir oktav aşağı yazılmış" : ""));
+    staffEl.setAttribute("aria-label", t("sap.staffAria", { note: noteLabel(written) }) + (p.ottava ? t("sap.ottava") : ""));
   }
 
   function drawFingering(pos, written){
     drawStaff(written);
     stepsEl.innerHTML = "";
-    fnote.innerHTML = written!=null ? noteName(written).tr + " <em>yazılı</em>" : "—";
+    fnote.innerHTML = written!=null ? noteLabel(written) + " <em>" + t("sap.written") + "</em>" : "—";
     paint(pos, fingerList);
     if(!pos){
       fcode.textContent = "—";
       const li = document.createElement("li"); li.className = "idle";
       const r = writtenRange();
-      li.innerHTML = '<span class="part">—</span><span>Bu nota seçili akortta sapta yok (yazılı ' +
-        noteName(r.low).tr + '–' + noteName(r.high).tr + ' arası).</span>';
+      li.innerHTML = '<span class="part">—</span><span>' + t("sap.notOnNeck", { low: noteLabel(r.low), high: noteLabel(r.high) }) + '</span>';
       stepsEl.appendChild(li);
       return;
     }
@@ -216,20 +246,20 @@ const Sap = (() => {
   let lastShown = null, lastFingerKey = null;
   function show(r){
     lastShown = r;
-    noteEl.textContent = r.writtenName.tr;
-    subEl.textContent = r.inRange ? "duyulan " + r.soundingName.tr : "yazılı " + r.writtenName.tr + " — seçili akortta sapta yok";
-    writtenEl.innerHTML = r.writtenName.tr + " <em>" + r.writtenName.en + "</em>";
-    soundEl.innerHTML  = r.soundingName.tr + " <em>" + r.soundingName.en + "</em>";
-    hzEl.innerHTML     = tr1(r.freq) + " <em>Hz</em>";
-    const openTxt = r.openString ? " · açık " + r.openString + ". tel" : "";
-    centtxt.textContent = "tampere notadan sapma: " + (r.cents>0?"+":"") + r.cents + " sent" + openTxt;
+    noteEl.textContent = noteLabel(r.written);
+    subEl.textContent = r.inRange ? t("sap.sounding", { note: noteLabel(r.written - T) }) : t("sap.outRange", { note: noteLabel(r.written) });
+    writtenEl.innerHTML = noteLabel(r.written) + " <em>" + otherName(r.written) + "</em>";
+    soundEl.innerHTML  = noteLabel(r.written - T) + " <em>" + otherName(r.written - T) + "</em>";
+    hzEl.innerHTML     = num(r.freq) + " <em>Hz</em>";
+    const openTxt = r.openString ? t("sap.openStr", { s: r.openString }) : "";
+    centtxt.textContent = t("sap.cents", { c: (r.cents>0?"+":"") + r.cents }) + openTxt;
     needle.style.left = Math.max(0, Math.min(100, 50 + r.cents/SCALE.max*50)) + "%";
     needle.classList.toggle("good", Math.abs(r.cents) <= SCALE.ok);
 
     // Henüz iz yokken grafik ızgarasını gösterilen notaya ortala
     if(!trace.length){ traceCenter = r.pitch; drawTrace(); }
 
-    regEl.textContent = r.inRange ? (r.positions.length === 1 ? "tek konum" : r.positions.length + " konumda çalınır") : "";
+    regEl.textContent = r.inRange ? (r.positions.length === 1 ? t("sap.onePos") : t("sap.nPos", { n: r.positions.length })) : "";
     const fk = r.inRange ? r.written : null;
     if(fk !== lastFingerKey){
       lastFingerKey = fk;
@@ -250,6 +280,12 @@ const Sap = (() => {
     "A","S","D","F","G","H","J","K","L","Ş","İ",
     "Q","W","E","R","T","Y","U","I","O","P","Ğ","Ü",
     "1","2","3","4","5","6","7","8","9","0","*","-"];
+  // Klavye düzeni okunamazsa İngilizcede ABD düzeninin etiketleri
+  const KEYLABEL_EN = [
+    "Z","X","C","V","B","N","M",",",".","/",
+    "A","S","D","F","G","H","J","K","L",";","'",
+    "Q","W","E","R","T","Y","U","I","O","P","[","]",
+    "1","2","3","4","5","6","7","8","9","0","-","="];
   const cells = new Map();
   let LOW = 0, HIGH = 0, layoutMap = null;
 
@@ -260,13 +296,13 @@ const Sap = (() => {
     cells.clear(); $("rail").replaceChildren();
     for(let i = 0; i <= HIGH - LOW; i++){
       const w = LOW + i, p = positionsFor(w)[0];
-      const key = layoutMap && layoutMap.get(KEYCODES[i]) ? layoutMap.get(KEYCODES[i]).toLocaleUpperCase("tr") : KEYLABEL[i];
+      const key = layoutMap && layoutMap.get(KEYCODES[i]) ? layoutMap.get(KEYCODES[i]).toLocaleUpperCase("tr") : (getLang() === "en" ? KEYLABEL_EN : KEYLABEL)[i];
       const el = document.createElement("button");
       el.className = "note"; el.type = "button";
-      el.setAttribute("aria-label", "yazılı " + noteName(w).tr + " çal");
+      el.setAttribute("aria-label", t("sap.playAria", { note: noteLabel(w) }));
       // Kartın üstünde notanın temel konumu: tel · perde
-      el.innerHTML = '<span class="pn">' + (p ? p.string + ". tel · " + (p.fret === 0 ? "açık" : p.fret) : "—") + '</span>' +
-                     '<span class="nn">' + noteName(w).tr + '</span>' +
+      el.innerHTML = '<span class="pn">' + (p ? posLabel(p) : "—") + '</span>' +
+                     '<span class="nn">' + noteLabel(w) + '</span>' +
                      (key ? '<span class="kk">' + key + '</span>' : '');
       el.setAttribute("aria-pressed", "false");
       el.addEventListener("click", () => toggleNote(w));
@@ -274,9 +310,7 @@ const Sap = (() => {
       cells.set(w, el);
     }
     const keyed = Math.min(KEYCODES.length, HIGH - LOW + 1), extra = HIGH - LOW + 1 - keyed;
-    $("striplegend").innerHTML = "Alt sıra <strong>Z…</strong> kalın teller, orta sıra <strong>A…</strong>, üst sıra <strong>Q…</strong>, rakam sırası <strong>1…</strong> tiz bölge — yazılı " +
-      noteName(LOW).tr + "’ten " + noteName(HIGH).tr + "’ya " + (HIGH-LOW+1) + " nota" + (extra ? " (en tiz " + extra + " tanesi yalnızca tıklanır)" : "") +
-      ". Kartın üstünde notanın temel konumu (tel · perde) yazar. Tuşlar klavyedeki fiziksel konuma göre çalışır; aynı tuş ya da Esc sesi durdurur.";
+    $("striplegend").innerHTML = t("sap.strip", { low: noteLabel(LOW), high: noteLabel(HIGH), n: HIGH-LOW+1, extra: extra ? t("sap.stripExtra", { n: extra }) : "" });
     if(lastShown) markActive(lastShown.inRange ? lastShown.written : null);
     markPlaying();
   }
@@ -358,7 +392,7 @@ const Sap = (() => {
       g.strokeStyle = col("--line"); g.lineWidth = 1;
       g.beginPath(); g.moveTo(LEFT, yy); g.lineTo(W, yy); g.stroke();
       g.fillStyle = col("--muted");
-      g.fillText(noteName(n).tr, 8, yy);
+      g.fillText(noteLabel(n), 8, yy);
     }
     g.strokeStyle = col("--accent"); g.lineWidth = 2; g.lineJoin = "round";
     g.beginPath();
@@ -386,7 +420,7 @@ const Sap = (() => {
     show(r);
     noteEl.style.opacity = 1;
     trace.push({ t: now, pitch: r.pitch });
-    if(isNew) announce.textContent = "yazılı " + r.writtenName.tr;
+    if(isNew) announce.textContent = t("sap.announce", { note: noteLabel(r.written) });
     if(Tabs.current === "sap") drawTrace();
   });
   Bus.on("silence", () => {
@@ -405,6 +439,13 @@ const Sap = (() => {
   });
   Bus.on("a4", () => { trace.length = 0; if(!Mic.running) show(lastShown ? analyze(writtenFreq(lastShown.written, T), T) : sample()); });
   Bus.on("tab", id => { if(id === "sap") drawTrace(); });
+  Bus.on("theme", () => setTimeout(drawTrace, 0));      // renkler CSS değişkenlerinden okunur
+  Bus.on("lang", () => {
+    labelOpenStrings(); buildStrip();
+    lastFingerKey = null;
+    if(lastShown) show(lastShown);
+    drawTrace();
+  });
 
   buildNeck(); labelOpenStrings(); focusPos(3, 0, false);
   buildStrip();

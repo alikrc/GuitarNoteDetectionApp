@@ -1,7 +1,7 @@
 // Çevrimdışı kullanım: uygulama dosyaları önbellekte tutulur.
 // Kendi dosyalarımız önce ağdan istenir (güncellemeler hemen gelsin), ağ yoksa önbellekten verilir.
 // Fontlar uygulamayla birlikte gelir (fonts/), ayrıca indirilmez.
-const CACHE = "gitar-v8";
+const CACHE = "gitar-v9";
 const SHELL = [
   "./",
   "index.html",
@@ -15,6 +15,7 @@ const SHELL = [
   "fonts/IBMPlexMono-Medium.ttf",
   "fonts/IBMPlexMono-Regular.ttf",
   "fonts/NotoMusic-text.woff2",
+  "js/core/i18n.js",
   "js/core/music.js",
   "js/core/guitar.js",
   "js/core/chords.js",
@@ -23,9 +24,11 @@ const SHELL = [
   "js/core/ear.js",
   "js/core/lessons.js",
   "js/app/base.js",
+  "js/app/i18n-html.js",
   "js/app/tabs.js",
   "js/app/settings.js",
   "js/app/metronome.js",
+  "js/app/prefs.js",
   "js/app/sap.js",
   "js/app/tuner.js",
   "js/app/chords.js",

@@ -9,7 +9,18 @@ const Metronome = (() => {
   let run = null;            // { t0, next, timer, raf }
   const taps = [];
 
-  for(const n of [1,2,3,4,5,6,7,9]) beatsEl.appendChild(new Option(n === 1 ? "vurgusuz" : n + " vuruş", n));
+  defStr({
+    "metro.noAccent": { tr:"vurgusuz", en:"no accent" },
+    "metro.beats":    { tr:"{n} vuruş", en:"{n} beats" },
+    "metro.start":    { tr:"Başlat", en:"Start" },
+    "metro.stop":     { tr:"Durdur", en:"Stop" }
+  });
+  function fillBeats(){
+    beatsEl.replaceChildren(...[1,2,3,4,5,6,7,9].map(n => new Option(n === 1 ? t("metro.noAccent") : t("metro.beats", { n }), n)));
+    beatsEl.value = beats;
+  }
+  fillBeats();
+  Bus.on("lang", () => { fillBeats(); runBtn.textContent = t(run ? "metro.stop" : "metro.start"); });
   beatsEl.value = beats; accentIn.checked = store.get("mAccent", true);
   function setBpm(v){
     bpm = Math.round(Math.min(220, Math.max(30, v)));
@@ -39,13 +50,13 @@ const Metronome = (() => {
     run = { t0: a.currentTime + 0.1, next: 0 };
     run.timer = setInterval(schedule, 25); schedule();
     run.raf = requestAnimationFrame(frame);
-    runBtn.textContent = "Durdur"; runBtn.classList.add("listening");
+    runBtn.textContent = t("metro.stop"); runBtn.classList.add("listening");
     toggle.classList.add("on");
   }
   function stop(){
     if(!run) return;
     clearInterval(run.timer); cancelAnimationFrame(run.raf); run = null;
-    runBtn.textContent = "Başlat"; runBtn.classList.remove("listening");
+    runBtn.textContent = t("metro.start"); runBtn.classList.remove("listening");
     toggle.classList.remove("on");
     [...dotsEl.children].forEach(d => d.classList.remove("now"));
   }
@@ -75,5 +86,6 @@ const Metronome = (() => {
   panel.hidden = !store.get("mOpen", false);
   toggle.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
   bpmIn.value = bpm; bpmVal.textContent = bpm; drawDots();
+  runBtn.textContent = t("metro.start");
   return { start, stop, get running(){ return !!run; } };
 })();

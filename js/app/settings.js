@@ -2,9 +2,12 @@
 const SettingsBar = (() => {
   const a4In = $("a4"), sensIn = $("sens"), tuningIn = $("tuning"), instIn = $("instrument");
   a4In.value = settings.a4; sensIn.value = settings.sens;
-  for(const k in TUNINGS) tuningIn.appendChild(new Option(TUNINGS[k].name, k));
-  for(const k in INSTRUMENTS) instIn.appendChild(new Option(INSTRUMENTS[k].name, k));
-  tuningIn.value = settings.tuning; instIn.value = settings.instrument;
+  function fillOptions(){
+    tuningIn.replaceChildren(...Object.keys(TUNINGS).map(k => new Option(L(TUNINGS[k], "name"), k)));
+    instIn.replaceChildren(...Object.keys(INSTRUMENTS).map(k => new Option(L(INSTRUMENTS[k], "name"), k)));
+    tuningIn.value = settings.tuning; instIn.value = settings.instrument;
+  }
+  fillOptions();
 
   function applyA4(v){
     v = Math.round(Math.min(450, Math.max(430, v))*2)/2;
@@ -42,8 +45,8 @@ const SettingsBar = (() => {
   // Geniş ekranda düğme gizli, çubuk hep açık (CSS yalnızca dar ekranda .collapsed'i uygular).
   const bar = $("settings"), setBtn = $("setbtn");
   function summary(){
-    const inst = { klasik:"Klasik", akustik:"Akustik", elektro22:"Elektro", elektro24:"Elektro" }[settings.instrument];
-    setBtn.textContent = "⚙ " + inst + " · " + TUNINGS[settings.tuning].name.split(" · ")[0] + (settings.a4 !== 440 ? " · La " + settings.a4 : "") + (bar.classList.contains("collapsed") ? " ▾" : " ▴");
+    setBtn.textContent = "⚙ " + L(INSTRUMENTS[settings.instrument], "short") + " · " + L(TUNINGS[settings.tuning], "name").split(" · ")[0] +
+      (settings.a4 !== 440 ? " · " + pcName(9) + " " + settings.a4 : "") + (bar.classList.contains("collapsed") ? " ▾" : " ▴");
   }
   function setOpen(open){
     bar.classList.toggle("collapsed", !open);
@@ -53,6 +56,7 @@ const SettingsBar = (() => {
   }
   setBtn.addEventListener("click", () => setOpen(bar.classList.contains("collapsed")));
   Bus.on("range", summary); Bus.on("a4", summary);
+  Bus.on("lang", () => { fillOptions(); summary(); });
   setOpen(store.get("settingsOpen", false));
   return {};
 })();

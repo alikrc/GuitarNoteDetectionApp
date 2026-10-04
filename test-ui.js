@@ -57,7 +57,9 @@ async function load(storage = {}){
       win.scrollTo = () => {};
       win.confirm = () => true;
       win.HTMLCanvasElement.prototype.getContext = () => null;
-      for(const k in storage) win.localStorage.setItem('gt.' + k, JSON.stringify(storage[k]));
+      // Varsayılan dil Türkçe (jsdom'un tarayıcı dili İngilizce); testler başka dil isterse storage ile verir
+      const st = Object.assign({ lang: 'tr' }, storage);
+      for(const k in st) win.localStorage.setItem('gt.' + k, JSON.stringify(st[k]));
     }
   });
   await new Promise(r => dom.window.addEventListener('load', r));
@@ -156,6 +158,65 @@ const tick = (ms = 0) => new Promise(r => setTimeout(r, ms));
   ok(second.errors.length === 0 && !d2.getElementById('panel-akorlar').hidden && d2.querySelectorAll('#neck .pos').length === 6 * 20 &&
      d2.getElementById('cname').textContent.startsWith('Re minör') && d2.getElementById('capo').value === '3',
      'son sekme, çalgı, capo ve akor geri yükleniyor', second.errors.join(' | '));
+
+  console.log('\n[UI 10] Dil ve tema');
+  const third = await load();
+  const W = third.win, D = third.doc, G = n => W.eval(n), $3 = id => D.getElementById(id);
+  const click3 = el => el.dispatchEvent(new W.MouseEvent('click', { bubbles: true }));
+  const STRS = G('STR');
+  ok(Object.keys(STRS).length > 300 && Object.entries(STRS).every(([k, v]) => v.tr && v.en), Object.keys(STRS).length + ' metnin hepsinin Türkçesi ve İngilizcesi var',
+     Object.entries(STRS).filter(([k, v]) => !v.tr || !v.en).map(([k]) => k).slice(0, 5).join(','));
+  // HTML'deki Türkçe metin sözlükle aynı mı (betik çalışmadan, ham sayfa)
+  const raw = new JSDOM(fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8')).window.document;
+  const norm = x => x.replace(/\s+/g, ' ').trim();
+  const mism = [...raw.querySelectorAll('[data-i18n]')].filter(el => {
+    const tr = STRS[el.dataset.i18n] && STRS[el.dataset.i18n].tr; if(!tr) return true;
+    const mode = el.dataset.i18nMode;
+    const have = mode === 'html' ? el.innerHTML : mode === 'last' ? [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('') : el.textContent;
+    return norm(have) !== norm(tr);
+  }).map(el => el.dataset.i18n);
+  const attrMism = [...raw.querySelectorAll('[data-i18n-attr]')].flatMap(el => el.dataset.i18nAttr.split(';').map(p => [el, ...p.split(':')]))
+    .filter(([el, a, k]) => !STRS[k] || norm(el.getAttribute(a)) !== norm(STRS[k].tr)).map(([, , k]) => k);
+  ok(mism.length === 0 && attrMism.length === 0, 'HTML\'deki Türkçe metinler sözlükle birebir aynı', [...mism, ...attrMism].join(','));
+  click3($3('langbtn'));
+  ok(D.documentElement.lang === 'en' && $3('tab-dersler').textContent === 'Lessons' && $3('langbtn').textContent === 'Türkçe' &&
+     JSON.parse(W.localStorage.getItem('gt.lang')) === 'en', 'dil düğmesi İngilizceye geçiriyor ve saklıyor');
+  ok(D.querySelector('#llist .lesson h3').textContent === 'Tune your guitar' && $3('cname').textContent.startsWith('A minor') &&
+     $3('tstrings').textContent.includes('E2') && $3('perde').textContent === 'G4', 'dersler, akor adı ve nota adları İngilizce (C D E)',
+     D.querySelector('#llist .lesson h3').textContent + ' / ' + $3('cname').textContent + ' / ' + $3('perde').textContent);
+  // Özel adlar (şarkı, sanatçı, usul) dışında Türkçe harf kalmamalı
+  const NAMES = [...G('SONGS').flatMap(x => [x.title, x.artist || '']), 'Türk aksağı', 'Türkçe', 'Müfit Erdağ', 'Mor ve Ötesi', 'Barış Manço', 'Yüksek Sadakat', 'MFÖ', 'Kâtibim', 'düm']
+    .filter(Boolean).sort((a, b) => b.length - a.length);
+  const leftovers = [];
+  for(const tb of [...D.querySelectorAll('[role=tab]')]){
+    click3(tb);
+    let txt = D.querySelector('.page').textContent;
+    for(const n of NAMES) txt = txt.split(n).join('');
+    const m = txt.match(/[^\s]*[çğışöüÇĞİŞÖÜ][^\s]*/g);
+    if(m) leftovers.push(tb.id + ': ' + [...new Set(m)].slice(0, 8).join(' '));
+  }
+  ok(leftovers.length === 0, 'İngilizcede hiçbir sekmede Türkçe metin kalmıyor', leftovers.join(' | '));
+  click3($3('langbtn'));
+  ok(D.documentElement.lang === 'tr' && $3('tab-dersler').textContent === 'Dersler' && D.querySelector('#llist .lesson h3').textContent === 'Gitarı akort et',
+     'Türkçeye geri dönüyor');
+  ok(D.documentElement.dataset.theme === undefined && $3('themebtn').textContent.includes('otomatik'), 'tema varsayılan: otomatik');
+  click3($3('themebtn')); const th1 = D.documentElement.dataset.theme;
+  click3($3('themebtn')); const th2 = D.documentElement.dataset.theme;
+  click3($3('themebtn')); const th3 = D.documentElement.dataset.theme;
+  ok(th1 === 'light' && th2 === 'dark' && th3 === undefined && JSON.parse(W.localStorage.getItem('gt.theme')) === 'auto', 'tema düğmesi otomatik → açık → koyu → otomatik');
+  const fourth = await load({ lang: 'en', theme: 'dark' });
+  ok(fourth.errors.length === 0 && fourth.doc.documentElement.lang === 'en' && fourth.doc.documentElement.dataset.theme === 'dark' &&
+     fourth.doc.getElementById('tab-akort').textContent === 'Tuner', 'kayıtlı İngilizce ve koyu tema ile açılış', fourth.errors.join(' | '));
+  const left4 = [];
+  for(const tb of [...fourth.doc.querySelectorAll('[role=tab]')]){
+    tb.dispatchEvent(new fourth.win.MouseEvent('click', { bubbles: true }));
+    let txt = fourth.doc.querySelector('.page').textContent;
+    for(const n of NAMES) txt = txt.split(n).join('');
+    const m = txt.match(/[^\s]*[çğışöüÇĞİŞÖÜ][^\s]*/g);
+    if(m) left4.push(tb.id + ': ' + [...new Set(m)].slice(0, 8).join(' '));
+  }
+  ok(left4.length === 0, 'doğrudan İngilizce açılışta da hiçbir sekmede Türkçe metin yok', left4.join(' | '));
+  W.close(); fourth.win.close();
 
   console.log(fail === 0 ? '\nTUM ARAYUZ TESTLERI GECTI\n' : `\n${fail} ARAYUZ TESTI BASARISIZ\n`);
   win.close(); second.win.close();

@@ -28,6 +28,9 @@ Mikrofondan çaldığını dinler ve geri bildirim verir. Ses cihazda işlenir, 
   duyunca sıradakine geçer, yanlışta ne duyduğunu söyler. Kendi ezgini `Mi4 Re4 Do4:2` biçiminde yazabilirsin.
 - **Kulak**: majör/minör, majör/minör/yedili, aralıklar, hangi açık tel; 10 soruluk turlar, en iyi puan.
 
+**Dil ve tema:** Türkçe ve İngilizce (ilk açılışta tarayıcının diline göre; İngilizcede notalar C D E… ile yazılır),
+otomatik / açık / koyu tema. İkisi de üst çubuktaki düğmelerle değişir ve saklanır.
+
 Ayarlar (tarayıcıda saklanır): çalgı (klasik 19, akustik 20, elektro 22/24 perde; örnek sesin tınısı da değişir), akort
 (Standart, Drop D, Yarım ses pes, DADGAD, Açık Sol, Açık Re), diyapazon (La = 430–450 Hz), mikrofon hassasiyeti.
 
@@ -55,7 +58,7 @@ Testler `js/core/` altındaki saf mantığı (nota/perde, sap konumları ve parm
 değiştirme sayacı, ritim ve vuruş yakalama, şarkı/ezgi ayrıştırma, kulak soruları, ders hedefleri) ve uygulama dosyalarının
 tutarlılığını (betik sırası, ad çakışması, çevrimdışı önbellek listesi, fontlar) doğrular. `test-ui.js` sayfayı jsdom'da gerçek
 betiklerle açar (ses ve mikrofon sahte) ve sekmeleri, dersleri, akort, akor, capo, şarkı, ezgi, kulak, metronom ve ayarları
-tıklayarak dener. GitHub Actions her push'ta testleri çalıştırır.
+tıklayarak dener; dil ve tema geçişlerini de denetler. GitHub Actions her push'ta testleri çalıştırır.
 
 ## Kaynaklar
 
@@ -86,8 +89,8 @@ tıklayarak dener. GitHub Actions her push'ta testleri çalıştırır.
 |---|---|
 | `index.html` | Yalnızca işaretleme: ayar çubuğu, sekmeler, paneller |
 | `css/app.css` | Stiller (açık/koyu tema) |
-| `js/core/` | Saf mantık, tarayıcı ve Node testleri ortak: `music` (nota, perde bulucu, FFT), `guitar` (akort, sap, parmak planı), `chords`, `rhythm`, `songs`, `ear`, `lessons` |
-| `js/app/` | Arayüz modülleri: `base` (ayarlar, olay yolu, ses üretimi, mikrofon), `tabs`, `settings`, `metronome`, `sap`, `tuner`, `chords`, `rhythm`, `songs`, `melody`, `ear`, `lessons`, `main` |
+| `js/core/` | Saf mantık, tarayıcı ve Node testleri ortak: `i18n` (dil, metin sözlüğü), `music` (nota, perde bulucu, FFT), `guitar` (akort, sap, parmak planı), `chords`, `rhythm`, `songs`, `ear`, `lessons` |
+| `js/app/` | Arayüz modülleri: `base` (ayarlar, olay yolu, ses üretimi, mikrofon), `i18n-html` (sayfa metinleri), `tabs`, `settings`, `metronome`, `prefs` (tema, dil), `sap`, `tuner`, `chords`, `rhythm`, `songs`, `melody`, `ear`, `lessons`, `main` |
 | `sw.js`, `manifest.webmanifest`, `icon.svg`, `icons/`, `screenshots/` | Çevrimdışı kullanım, ana ekrana ekleme, mağaza görselleri |
 | `fonts/`, `css/fonts.css` | Uygulamayla gelen fontlar ve lisansları (OFL) |
 | `privacy.html` | Gizlilik politikası (Türkçe + İngilizce) |
@@ -96,6 +99,11 @@ tıklayarak dener. GitHub Actions her push'ta testleri çalıştırır.
 
 Betikler klasik `<script>` olarak sırayla yüklenir (derleme adımı yok). Her uygulama dosyası tek bir genel modül nesnesi
 tanımlar; modüller birbirine `Bus` olaylarıyla haber verir.
+
+**Çeviri:** metinler kullanıldıkları dosyada `defStr({ anahtar: { tr, en } })` ile tanımlanır, `t("anahtar")` seçili dildekini verir.
+Veri tablolarında İngilizce alanlar `_en` ekiyle durur (`L(kayıt, "name")`). Sayfadaki sabit metinler `data-i18n` anahtarlarıyla
+`js/app/i18n-html.js`'te; arayüz testi HTML'deki Türkçe metnin sözlükle aynı olduğunu ve İngilizcede hiçbir sekmede Türkçe
+metin kalmadığını denetler.
 
 ## Yayınlama (GitHub Pages)
 

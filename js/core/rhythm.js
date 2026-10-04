@@ -9,23 +9,29 @@
 // Aksak 9/8 = 2+2+2+3 — en.wikipedia.org/wiki/Aksak; Türk aksağı 5/8 = 2+3, üç vuruş — islamansiklopedisi.org.tr/turk-aksagi.
 // Gitar vuruş yönleri (aşağı/yukarı) usul gruplarına göre bizim uyarlamamız.
 const RHYTHMS = [
-  { id:"dortluk",  name:"Dörtlük vuruş",          meter:"4/4", slots:"D-D-D-D-", accents:{0:2},
+  { id:"dortluk",  name:"Dörtlük vuruş", name_en:"Quarter-note strum",          meter:"4/4", slots:"D-D-D-D-", accents:{0:2},
     beats:[0,2,4,6], counts:["1","&","2","&","3","&","4","&"],
+    desc_en:"One downstroke on every beat. The first step to locking in with the tempo, and it leaves plenty of time to change chords.",
     desc:"Her vuruşta bir aşağı vuruş. Tempoya oturmanın ilk adımı; akor değiştirmeye de bol zaman kalır." },
-  { id:"sekizlik", name:"Sekizlik aşağı-yukarı",  meter:"4/4", slots:"DUDUDUDU", accents:{0:2,4:1},
+  { id:"sekizlik", name:"Sekizlik aşağı-yukarı", name_en:"Eighth-note down-up",  meter:"4/4", slots:"DUDUDUDU", accents:{0:2,4:1},
     beats:[0,2,4,6], counts:["1","&","2","&","3","&","4","&"],
+    desc_en:"Your hand swings like a pendulum without stopping: down on the numbers, up on the “ands”. Upstrokes are light and hit the thin strings.",
     desc:"El sarkaç gibi hiç durmadan sallanır: sayılarda aşağı, “ve”lerde yukarı. Yukarı vuruş hafif ve ince tellerde." },
-  { id:"pop",      name:"Pop / folk",             meter:"4/4", slots:"D-DU-UDU", accents:{0:2},
+  { id:"pop",      name:"Pop / folk", name_en:"Pop / folk",             meter:"4/4", slots:"D-DU-UDU", accents:{0:2},
     beats:[0,2,4,6], counts:["1","&","2","&","3","&","4","&"],
+    desc_en:"Down, down-up, up-down-up: the most common beginner pattern. The hand keeps swinging as in eighths; on empty cells it passes without touching the strings.",
     desc:"Aşağı, aşağı-yukarı, yukarı-aşağı-yukarı: en yaygın başlangıç kalıbı. El sekizlikteki gibi sallanmaya devam eder; boş hücrelerde tele değmeden geçer." },
-  { id:"vals",     name:"Vals",                   meter:"3/4", slots:"D-DUDU", accents:{0:2},
+  { id:"vals",     name:"Vals", name_en:"Waltz",                   meter:"3/4", slots:"D-DUDU", accents:{0:2},
     beats:[0,2,4], counts:["1","&","2","&","3","&"],
+    desc_en:"Three beats: a strong down on 1, down-up on 2 and 3.",
     desc:"Üç vuruşlu: 1'de kuvvetli aşağı, 2 ve 3'te aşağı-yukarı." },
-  { id:"turkaksagi", name:"Türk aksağı",          meter:"5/8 (2+3)", slots:"D-D-U", accents:{0:2,2:1},
+  { id:"turkaksagi", name:"Türk aksağı", name_en:"Türk aksağı",          meter:"5/8 (2+3)", slots:"D-D-U", accents:{0:2,2:1},
     beats:[0,2], counts:["1","2","1","2","3"],
+    desc_en:"Five pulses: a group of 2 and a group of 3. The first stroke is strong (düm), the start of the second group half-strong, the third weak.",
     desc:"Beş zaman: bir 2'li ve bir 3'lü grup. İlk vuruş kuvvetli (düm), ikinci grubun başı yarı kuvvetli, üçüncü vuruş zayıf." },
-  { id:"aksak",    name:"Aksak",                  meter:"9/8 (2+2+2+3)", slots:"DUDUDUD-U", accents:{0:2,2:1,4:1,6:1},
+  { id:"aksak",    name:"Aksak", name_en:"Aksak",                  meter:"9/8 (2+2+2+3)", slots:"DUDUDUD-U", accents:{0:2,2:1,4:1,6:1},
     beats:[0,2,4,6], counts:["1","2","1","2","1","2","1","2","3"],
+    desc_en:"Nine pulses in four groups: three short (2) and one long (3). Accent the group starts and feel that the last group is one pulse longer.",
     desc:"Dokuz zaman, dört grup: üç kısa (2) ve bir uzun (3). Grup başlarını vurgula; son grubun bir zaman uzun olduğunu hisset." }
 ];
 function rhythmById(id){ return RHYTHMS.find(r => r.id === id) || null; }

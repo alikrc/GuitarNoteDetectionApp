@@ -3,18 +3,24 @@
 
 // ---- Akorlar ----
 // Akor türleri: kökten yarım ses aralıkları. omit: şekilde eksik olabilen ses (yedili akorlarda beşli).
+// tr/tr_en: akor türünün adı; formula/formula_en: hangi seslerden oluştuğu.
 const CHORD_TYPES = {
-  "":     { tr:"majör",           iv:[0,4,7],    formula:"kök + büyük üçlü + tam beşli" },
-  "m":    { tr:"minör",           iv:[0,3,7],    formula:"kök + küçük üçlü + tam beşli" },
-  "7":    { tr:"dominant yedili", iv:[0,4,7,10], formula:"majör akor + küçük yedili", omit:7 },
-  "m7":   { tr:"minör yedili",    iv:[0,3,7,10], formula:"minör akor + küçük yedili", omit:7 },
-  "maj7": { tr:"majör yedili",    iv:[0,4,7,11], formula:"majör akor + büyük yedili", omit:7 },
-  "sus2": { tr:"sus2",            iv:[0,2,7],    formula:"kök + büyük ikili + tam beşli (üçlü yok)" },
-  "sus4": { tr:"sus4",            iv:[0,5,7],    formula:"kök + tam dörtlü + tam beşli (üçlü yok)" }
+  "":     { tr:"majör",           tr_en:"major",            iv:[0,4,7],    formula:"kök + büyük üçlü + tam beşli",            formula_en:"root + major third + perfect fifth" },
+  "m":    { tr:"minör",           tr_en:"minor",            iv:[0,3,7],    formula:"kök + küçük üçlü + tam beşli",            formula_en:"root + minor third + perfect fifth" },
+  "7":    { tr:"dominant yedili", tr_en:"dominant seventh", iv:[0,4,7,10], formula:"majör akor + küçük yedili",               formula_en:"major chord + minor seventh", omit:7 },
+  "m7":   { tr:"minör yedili",    tr_en:"minor seventh",    iv:[0,3,7,10], formula:"minör akor + küçük yedili",               formula_en:"minor chord + minor seventh", omit:7 },
+  "maj7": { tr:"majör yedili",    tr_en:"major seventh",    iv:[0,4,7,11], formula:"majör akor + büyük yedili",               formula_en:"major chord + major seventh", omit:7 },
+  "sus2": { tr:"sus2",            tr_en:"sus2",             iv:[0,2,7],    formula:"kök + büyük ikili + tam beşli (üçlü yok)", formula_en:"root + major second + perfect fifth (no third)" },
+  "sus4": { tr:"sus4",            tr_en:"sus4",             iv:[0,5,7],    formula:"kök + tam dörtlü + tam beşli (üçlü yok)", formula_en:"root + perfect fourth + perfect fifth (no third)" }
 };
+// Akordaki görev (rol) kimliği Türkçe kalır (testler ve kısaltmalar buna bakar); ekranda roleLabel ile çevrilir.
 const INTERVAL_TR = {0:"kök",2:"ikili",3:"küçük üçlü",4:"büyük üçlü",5:"dörtlü",7:"beşli",10:"küçük yedili",11:"büyük yedili"};
+const ROLE_EN = {"kök":"root","ikili":"second","küçük üçlü":"minor third","büyük üçlü":"major third","dörtlü":"fourth","beşli":"fifth","küçük yedili":"minor seventh","büyük yedili":"major seventh"};
+function roleLabel(role){ return LANG === "en" ? (ROLE_EN[role] || role) : role; }
 const ROOT_SYM = ["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
 const CHORD_GROUPS = ["Açık majör","Açık minör","Yedili","Sus ve maj7","Barre"];
+const CHORD_GROUPS_EN = ["Open major","Open minor","Sevenths","Sus and maj7","Barre"];
+function chordGroupName(i){ return (LANG === "en" ? CHORD_GROUPS_EN : CHORD_GROUPS)[i]; }
 // Standart akort şekilleri. frets/fingers 6. telden 1. tele; -1 çalınmaz, parmak 0 = basılmaz.
 // barre: işaret (ya da yüzük) parmağının birden çok teli birden bastırdığı perde ve tel aralığı.
 // Perde dizilimleri: https://en.wikipedia.org/wiki/Guitar_chord (açık akorlar); barre şekilleri E ve A kalıbı.
@@ -79,7 +85,9 @@ function chordBySymbol(sym){
 }
 // Capo: şekil aynı kalır, ses capo perdesi kadar yarım ses tizleşir.
 function soundingSymbol(c, capo = 0){ return ROOT_SYM[(c.root + capo) % 12] + c.type; }
-function soundingName(c, capo = 0){ return NOTE_TR[(c.root + capo) % 12] + " " + CHORD_TYPES[c.type].tr; }
+// Seçili dilde akor adı: "La minör" / "A minor" (c.name Türkçe kalır)
+function soundingName(c, capo = 0){ return pcName(c.root + capo) + " " + L(CHORD_TYPES[c.type], "tr"); }
+function chordName(c){ return soundingName(c, 0); }
 // Akorun perde sınıfları (0 = Do), kök önce
 function chordPcs(c, capo = 0){ return CHORD_TYPES[c.type].iv.map(i => (c.root + capo + i) % 12); }
 // Akorun tel tel dökümü (standart akortta; capo varsa sesler tizleşir): 6. telden 1. tele
