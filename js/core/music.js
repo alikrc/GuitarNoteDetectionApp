@@ -1,30 +1,10 @@
-// Ses ve nota temeli: diyapazon, nota adları, AEU perdeleri, dizek, perde bulucu, FFT.
+// Ses ve nota temeli: diyapazon, nota adları, dizek, perde bulucu, FFT.
 // Tarayıcıda <script> ile sırayla yüklenir (music → guitar → chords → rhythm → …); Node testleri vm ile aynı sırada yükler.
 
 let A4_HZ = 440;
 const NOTE_EN = ["C","C♯","D","E♭","E","F","F♯","G","G♯","A","B♭","B"];
 const NOTE_TR = ["Do","Do♯","Re","Mi♭","Mi","Fa","Fa♯","Sol","Sol♯","La","Si♭","Si"];
 
-const PERDES = [
-  [-53,"Kaba Rast"],[-49,"Kaba Nim Zirgüle"],[-48,"Kaba Zirgüle"],[-45,"Kaba Dik Zirgüle"],
-  [-44,"Kaba Dügâh"],[-40,"Kaba Kürdî"],[-39,"Kaba Dik Kürdî"],[-36,"Kaba Segâh"],
-  [-35,"Kaba Bûselik"],[-32,"Kaba Dik Bûselik"],[-31,"Kaba Çargâh"],[-27,"Kaba Nim Hicaz"],
-  [-26,"Kaba Hicaz"],[-23,"Kaba Dik Hicaz"],[-22,"Yegâh"],[-18,"Kaba Nim Hisar"],
-  [-17,"Kaba Hisar"],[-14,"Kaba Dik Hisar"],[-13,"Hüseynî Aşîran"],[-9,"Acem Aşîran"],
-  [-8,"Dik Acem Aşîran"],[-5,"Irak"],[-4,"Geveşt"],[-1,"Dik Geveşt"],
-  [0,"Rast"],[4,"Nim Zirgüle"],[5,"Zirgüle"],[8,"Dik Zirgüle"],[9,"Dügâh"],
-  [13,"Kürdî"],[14,"Dik Kürdî"],[17,"Segâh"],[18,"Bûselik"],[21,"Dik Bûselik"],
-  [22,"Çargâh"],[26,"Nim Hicaz"],[27,"Hicaz"],[30,"Dik Hicaz"],[31,"Nevâ"],
-  [35,"Nim Hisar"],[36,"Hisar"],[39,"Dik Hisar"],[40,"Hüseynî"],[44,"Acem"],
-  [45,"Dik Acem"],[48,"Evç"],[49,"Mâhûr"],[52,"Dik Mâhûr"],[53,"Gerdâniye"],
-  [57,"Nim Şehnâz"],[58,"Şehnâz"],[61,"Dik Şehnâz"],[62,"Muhayyer"],[66,"Sünbüle"],
-  [67,"Dik Sünbüle"],[70,"Tiz Segâh"],[71,"Tiz Bûselik"],[74,"Tiz Dik Bûselik"],[75,"Tiz Çargâh"],
-  [79,"Tiz Nim Hicaz"],[80,"Tiz Hicaz"],[83,"Tiz Dik Hicaz"],[84,"Tiz Nevâ"],[88,"Tiz Nim Hisar"],
-  [89,"Tiz Hisar"],[92,"Tiz Dik Hisar"],[93,"Tiz Hüseynî"],[97,"Tiz Acem"],[98,"Tiz Dik Acem"],
-  [101,"Tiz Evç"],[102,"Tiz Mâhûr"],[105,"Tiz Dik Mâhûr"],[106,"Tiz Gerdâniye"],
-  [110,"Tiz Nim Şehnâz"],[111,"Tiz Şehnâz"],[114,"Tiz Dik Şehnâz"],[115,"Tiz Muhayyer"],
-  [119,"Tiz Sünbüle"],[120,"Tiz Dik Sünbüle"]
-];
 
 function setA4(hz){
   if(!(hz >= 400 && hz <= 480)) throw new Error("diyapazon 400-480 Hz arasında olmalı: " + hz);
@@ -49,17 +29,8 @@ function staffPos(written){
   const pc = ((m%12)+12)%12, oct = Math.floor(m/12)-1;
   return { step: oct*7 + STAFF_LETTER[pc] - 30, acc: STAFF_ACC[pc], ottava };
 }
-function nearestPerde(comma){
-  let best=null, bd=1e9;
-  for(const [c,n] of PERDES){ const d=Math.abs(c-comma); if(d<bd){bd=d;best=[c,n];} }
-  if(!best || bd>2.5) return null;
-  return { name: best[1], comma: best[0], delta: comma-best[0] };
-}
-function perdeFreq(written, transpose){
-  const p = nearestPerde((written-67)*53/12);
-  const exact = p ? 67 + p.comma*12/53 : written;   // perde adı olmayan bölge: tampere
-  return midiToFreq(exact - transpose);
-}
+// Yazılı notanın tampere frekansı (transpose: yazılı − duyulan yarım ses)
+function writtenFreq(written, transpose){ return midiToFreq(written - transpose); }
 
 function fftMag(buf){
   let n = 1; while(n < buf.length) n <<= 1;
@@ -136,4 +107,4 @@ class NoteStabilizer{
     return false;
   }
 }
-function noteKey(r){ return r.written + ":" + (r.perde ? r.perde.comma : "-"); }
+function noteKey(r){ return String(r.written); }

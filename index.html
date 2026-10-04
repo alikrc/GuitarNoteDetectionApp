@@ -8,9 +8,8 @@
 <meta name="theme-color" content="#1C5B59">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Commissioner:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&text=%F0%9D%84%9E%E2%99%AF%E2%99%AD&display=swap">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
@@ -26,6 +25,7 @@
     <button class="primary" id="btn">Mikrofonu başlat</button>
     <span class="chip" id="chip">mikrofon kapalı</span>
     <button type="button" class="stopbtn metrobtn" id="metrobtn" aria-controls="metro" aria-expanded="false">♩ Metronom</button>
+    <button type="button" class="stopbtn setbtn" id="setbtn" aria-controls="settings" aria-expanded="true">⚙ Ayarlar</button>
   </div>
 
   <div class="metro card" id="metro" role="region" aria-label="Metronom" hidden>
@@ -47,7 +47,7 @@
     <div class="mdots" id="mdots" aria-hidden="true"></div>
   </div>
 
-  <div class="settings">
+  <div class="settings" id="settings">
     <div class="field">
       <label class="label" for="instrument">Çalgı</label>
       <select id="instrument"></select>
@@ -78,18 +78,18 @@
   </div>
 
   <nav class="tabs" id="tabs" role="tablist" aria-label="Bölümler">
-    <button type="button" role="tab" id="tab-dersler"  aria-controls="dersler">Dersler</button>
-    <button type="button" role="tab" id="tab-akort"    aria-controls="akort">Akort</button>
-    <button type="button" role="tab" id="tab-sap"      aria-controls="sap">Sap ve notalar</button>
-    <button type="button" role="tab" id="tab-akorlar"  aria-controls="akorlar">Akorlar</button>
-    <button type="button" role="tab" id="tab-ritim"    aria-controls="ritim">Ritim</button>
-    <button type="button" role="tab" id="tab-sarkilar" aria-controls="sarkilar">Şarkılar</button>
-    <button type="button" role="tab" id="tab-ezgiler"  aria-controls="ezgiler">Ezgiler</button>
-    <button type="button" role="tab" id="tab-kulak"    aria-controls="kulak">Kulak</button>
+    <button type="button" role="tab" id="tab-dersler"  aria-controls="panel-dersler">Dersler</button>
+    <button type="button" role="tab" id="tab-akort"    aria-controls="panel-akort">Akort</button>
+    <button type="button" role="tab" id="tab-sap"      aria-controls="panel-sap">Sap ve notalar</button>
+    <button type="button" role="tab" id="tab-akorlar"  aria-controls="panel-akorlar">Akorlar</button>
+    <button type="button" role="tab" id="tab-ritim"    aria-controls="panel-ritim">Ritim</button>
+    <button type="button" role="tab" id="tab-sarkilar" aria-controls="panel-sarkilar">Şarkılar</button>
+    <button type="button" role="tab" id="tab-ezgiler"  aria-controls="panel-ezgiler">Ezgiler</button>
+    <button type="button" role="tab" id="tab-kulak"    aria-controls="panel-kulak">Kulak</button>
   </nav>
 
   <!-- ===== Dersler ===== -->
-  <section class="panel" id="dersler" role="tabpanel" aria-labelledby="tab-dersler" hidden>
+  <section class="panel" id="panel-dersler" role="tabpanel" aria-labelledby="tab-dersler" hidden>
     <div class="card">
       <div class="striphead">
         <div class="label">Başlangıç kursu</div>
@@ -103,7 +103,7 @@
   </section>
 
   <!-- ===== Akort ===== -->
-  <section class="panel" id="akort" role="tabpanel" aria-labelledby="tab-akort" hidden>
+  <section class="panel" id="panel-akort" role="tabpanel" aria-labelledby="tab-akort" hidden>
     <div class="card">
       <div class="striphead">
         <div class="label">Akort</div>
@@ -129,18 +129,12 @@
   </section>
 
   <!-- ===== Sap ve notalar ===== -->
-  <section class="panel" id="sap" role="tabpanel" aria-labelledby="tab-sap" hidden>
+  <section class="panel" id="panel-sap" role="tabpanel" aria-labelledby="tab-sap" hidden>
     <div class="grid">
       <section class="card" aria-labelledby="perdelab">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <div class="label" id="perdelab">Duyulan nota</div>
-          <div class="seg" role="radiogroup" aria-label="Gösterge ölçeği">
-            <button type="button" role="radio" data-mode="sent" aria-checked="true">Sent</button>
-            <button type="button" role="radio" data-mode="koma" aria-checked="false">Koma (AEU)</button>
-          </div>
-        </div>
-        <div class="perde resting" id="perde">Rast</div>
-        <div class="koma" id="koma">±0,0 koma sapma</div>
+        <div class="label" id="perdelab">Çalınan nota (yazılı)</div>
+        <div class="perde resting" id="perde">Sol4</div>
+        <div class="koma" id="koma">duyulan Sol3</div>
         <div class="sr" aria-live="polite" id="announce"></div>
 
         <div class="meter">
@@ -166,9 +160,9 @@
         <div class="tracewrap">
           <div class="tracehead">
             <div class="label">Entonasyon izi · son 8 saniye</div>
-            <span class="reg">yatay çizgiler: AEU perdeleri</span>
+            <span class="reg">yatay çizgiler: notalar</span>
           </div>
-          <canvas class="trace" id="trace" role="img" aria-label="Son 8 saniyede çalınan sesin koma cinsinden grafiği"></canvas>
+          <canvas class="trace" id="trace" role="img" aria-label="Son 8 saniyede çalınan sesin perde grafiği"></canvas>
         </div>
       </section>
 
@@ -220,7 +214,7 @@
   </section>
 
   <!-- ===== Akorlar ===== -->
-  <section class="panel" id="akorlar" role="tabpanel" aria-labelledby="tab-akorlar" hidden>
+  <section class="panel" id="panel-akorlar" role="tabpanel" aria-labelledby="tab-akorlar" hidden>
     <section class="card" aria-labelledby="chordlab">
       <div class="striphead">
         <div class="label" id="chordlab">Akorlar — öğren, dinle, çal</div>
@@ -284,7 +278,7 @@
   </section>
 
   <!-- ===== Ritim ===== -->
-  <section class="panel" id="ritim" role="tabpanel" aria-labelledby="tab-ritim" hidden>
+  <section class="panel" id="panel-ritim" role="tabpanel" aria-labelledby="tab-ritim" hidden>
     <section class="card rhythm" aria-labelledby="rhylab">
       <div class="striphead">
         <div class="label" id="rhylab">Ritim — vuruş kalıpları</div>
@@ -322,7 +316,7 @@
   </section>
 
   <!-- ===== Şarkılar ===== -->
-  <section class="panel" id="sarkilar" role="tabpanel" aria-labelledby="tab-sarkilar" hidden>
+  <section class="panel" id="panel-sarkilar" role="tabpanel" aria-labelledby="tab-sarkilar" hidden>
     <section class="card" aria-labelledby="songlab">
       <div class="striphead">
         <div class="label" id="songlab">Şarkılar — akorlarla birlikte çal</div>
@@ -370,7 +364,7 @@
   </section>
 
   <!-- ===== Ezgiler ===== -->
-  <section class="panel" id="ezgiler" role="tabpanel" aria-labelledby="tab-ezgiler" hidden>
+  <section class="panel" id="panel-ezgiler" role="tabpanel" aria-labelledby="tab-ezgiler" hidden>
     <section class="card" aria-labelledby="mellab">
       <div class="striphead">
         <div class="label" id="mellab">Ezgiler — nota nota çal</div>
@@ -404,7 +398,7 @@
   </section>
 
   <!-- ===== Kulak ===== -->
-  <section class="panel" id="kulak" role="tabpanel" aria-labelledby="tab-kulak" hidden>
+  <section class="panel" id="panel-kulak" role="tabpanel" aria-labelledby="tab-kulak" hidden>
     <section class="card" aria-labelledby="earlab">
       <div class="striphead">
         <div class="label" id="earlab">Kulak eğitimi</div>
@@ -425,7 +419,8 @@
   <footer>
     Çalgı seçimi sapın perde sayısını (klasik 19, akustik 20, elektro 22 ya da 24; tipik değerler) ve örnek sesin tınısını
     değiştirir. Elektro gitar amfisiz çok kısık duyulur: mikrofonu amfinin hoparlörüne yakın tut ya da gitarı bir ses kartına
-    bağlayıp tarayıcının mikrofon izninde o girişi seç. Ses cihazında işlenir, hiçbir yere gönderilmez.
+    bağlayıp tarayıcının mikrofon izninde o girişi seç. Ses cihazında işlenir, hiçbir yere gönderilmez
+    (<a href="privacy.html">gizlilik</a>).
     Kaynaklar ve ayrıntılar için <a href="https://github.com/alikrc/GuitarNoteDetectionApp" target="_blank" rel="noopener">depodaki README</a>.
   </footer>
 </div>

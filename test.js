@@ -7,7 +7,7 @@ const core = new Proxy({}, { get: (_, k) => vm.runInContext(String(k), ctx) });
 const read = f => fs.readFileSync(path.join(__dirname, f), 'utf8');
 const html = read('index.html');
 const { GUITAR_TRANSPOSE: T, INSTRUMENTS, setInstrument, getInstrument, getFrets, TUNINGS, setTuning, getTuning, stringOpen, writtenRange, positionsFor, positionNote,
-        analyze, detectPitch, midiToFreq, nearestPerde, perdeFreq, describePosition, tabFor,
+        analyze, detectPitch, midiToFreq, writtenFreq, describePosition, tabFor,
         setA4, getA4, sensitivityToRms, NoteStabilizer, noteKey, staffPos,
         CHORDS, CHORD_TYPES, CHORD_GROUPS, chordBySymbol, chordPcs, chordStrings, chordBaseFret, chroma, chordCheck, matchChords,
         RHYTHMS, rhythmById, slotDur, rhythmBar, scoreTiming, median, OnsetDetector } = core;
@@ -59,36 +59,26 @@ ok(positionsFor(50)[0].string===6 && positionsFor(50)[0].fret===0, 'Drop D: yazi
 ok(positionsFor(52)[0].fret===2 && positionsFor(52)[0].string===6, 'Drop D: Mi3 6. telde 2. perde');
 setTuning('standart');
 
-console.log('\n[3] Frekans -> yazili / duyulan / perde (gitar oktav pes duyulur)');
+console.log('\n[3] Frekans -> yazili / duyulan nota ve sent (gitar oktav pes duyulur)');
 const cases = [
-  [midiToFreq(55), 'G4', 'G3', 'Rast'],             // acik 3. tel
-  [midiToFreq(40), 'E3', 'E2', null],               // acik 6. tel
-  [midiToFreq(45), 'A3', 'A2', 'Kaba Dügâh'],       // acik 5. tel
-  [midiToFreq(57), 'A4', 'A3', 'Dügâh'],
-  [midiToFreq(62), 'D5', 'D4', 'Nevâ'],
+  [midiToFreq(55), 'G4', 'G3'],             // acik 3. tel
+  [midiToFreq(40), 'E3', 'E2'],             // acik 6. tel
+  [midiToFreq(45), 'A3', 'A2'],             // acik 5. tel
+  [midiToFreq(57), 'A4', 'A3'],
+  [midiToFreq(62), 'D5', 'D4'],
 ];
-for(const [f,w,s,p] of cases){
+for(const [f,w,s] of cases){
   const a = analyze(f, T);
-  ok(a.writtenName.en===w && a.soundingName.en===s && (a.perde?a.perde.name:null)===p,
-     `${f.toFixed(1)} Hz -> yazili ${w} / duyulan ${s} / ${p}`,
-     `(gelen: ${a.writtenName.en} / ${a.soundingName.en} / ${a.perde?a.perde.name:'—'})`);
+  ok(a.writtenName.en===w && a.soundingName.en===s && a.cents===0,
+     `${f.toFixed(1)} Hz -> yazili ${w} / duyulan ${s}`, `(gelen: ${a.writtenName.en} / ${a.soundingName.en})`);
 }
+const sharp = analyze(midiToFreq(55)*Math.pow(2, 23/1200), T);
+ok(sharp.written===67 && sharp.cents===23 && Math.abs(sharp.pitch-67.23)<1e-6, 'Sol3 +23 sent: yazili Sol4, +23 sent, pitch 67,23');
+ok(analyze(midiToFreq(55)*Math.pow(2, 60/1200), T).written===68, '+60 sent bir ust notaya yuvarlaniyor');
 const e2 = analyze(82.41, T);
 ok(e2.openString===6 && e2.inRange, '82,41 Hz -> acik 6. tel olarak taniniyor');
 ok(analyze(midiToFreq(59), T).openString===2 && analyze(midiToFreq(60), T).openString===null, 'Si3 acik 2. tel; Do4 acik tel degil');
 ok(analyze(midiToFreq(37), T).inRange===false, 'Do♯2 standart akortta aralik disi');
-
-console.log('\n[4] Koma perdeleri (AEU)');
-const komaCase = (commas, expectPerde, expectNote) => {
-  const writtenMidi = 67 + commas*12/53;
-  const a = analyze(midiToFreq(writtenMidi-T), T);
-  ok(a.perde.name===expectPerde && a.writtenName.en===expectNote,
-     `${commas} koma -> ${expectPerde} (${expectNote})`, `(gelen: ${a.perde.name} / ${a.writtenName.en})`);
-};
-komaCase(17,'Segâh','B4');
-komaCase(18,'Bûselik','B4');
-komaCase(27,'Hicaz','C♯5');
-komaCase(-22,'Yegâh','D4');
 
 console.log('\n[5] Perde bulucu: sentetik tel sesi (tum harmonikler, guclu 2. harmonik, sonumlenen)');
 const sr = 48000;
@@ -111,17 +101,14 @@ ok(detectPitch(quiet, sr).freq === -1, 'sessizlikte nota gostermiyor');
 const noise = new Float32Array(4096); for(let i=0;i<4096;i++) noise[i]=0.3*(Math.random()-0.5);
 ok(detectPitch(noise, sr).freq === -1, 'beyaz gurultuyu reddediyor');
 
-console.log('\n[7] Nota seridi: AEU koma frekanslari ve klavye eslemesi');
+console.log('\n[7] Nota seridi: tampere frekanslar ve klavye eslemesi');
 let stripErr = [];
 for(let w=r.low; w<=r.high; w++){
-  const a = analyze(perdeFreq(w, T), T);
-  const p = nearestPerde((w-67)*53/12);
-  if(a.written !== w) stripErr.push(`${w}: geri okumada ${a.written}`);
-  if((a.perde?a.perde.name:null) !== (p?p.name:null)) stripErr.push(`${w}: perde adi tutmadi`);
-  if(p && Math.abs(a.perde.delta) > 0.01) stripErr.push(`${w}: ${p.name} komasindan sapma`);
+  const a = analyze(writtenFreq(w, T), T);
+  if(a.written !== w || a.cents !== 0) stripErr.push(`${w}: geri okumada ${a.written} ${a.cents} sent`);
 }
-ok(stripErr.length===0, `${r.high-r.low+1} notanin tamami dogru perde ve tam koma yuksekliginde`, stripErr.join(' | '));
-ok(Math.abs(perdeFreq(67,T) - midiToFreq(55)) < 1e-9, 'Rast (yazili Sol4) = duyulan Sol3 = 196,00 Hz', perdeFreq(67,T).toFixed(2)+' Hz');
+ok(stripErr.length===0, `${r.high-r.low+1} notanin tamami tam tampere yukseklikte geri okunuyor`, stripErr.join(' | '));
+ok(Math.abs(writtenFreq(67,T) - 196) < 0.01, 'yazili Sol4 = duyulan Sol3 = 196,00 Hz', writtenFreq(67,T).toFixed(2)+' Hz');
 const uiSrc = read('js/app/sap.js').split('const KEYCODES = [')[1];
 const codes = uiSrc.split('];')[0].match(/"[^"]+"/g).map(x=>x.slice(1,-1));
 const labels = uiSrc.split('const KEYLABEL = [')[1].split('];')[0].match(/"[^"]+"/g).map(x=>x.slice(1,-1));
@@ -144,8 +131,8 @@ setTuning('standart');
 console.log('\n[9] Diyapazon ayari');
 setA4(442);
 ok(Math.abs(midiToFreq(69)-442)<1e-9, 'La = 442 Hz');
-const r442 = analyze(perdeFreq(67,T), T);
-ok(r442.perde.name==='Rast' && Math.abs(r442.perde.delta)<0.01, '442 Hz\'de Rast yine tam Rast');
+const r442 = analyze(writtenFreq(67,T), T);
+ok(r442.written===67 && r442.cents===0 && analyze(196, T).cents < -5, '442 Hz\'de Sol3 tam; 440 akortlu Sol3 pes gorunuyor');
 threw=false; try{ setA4(1000); }catch(e){ threw=true; }
 ok(threw && getA4()===442, 'gecersiz diyapazon reddediliyor');
 setA4(440);
@@ -158,7 +145,7 @@ ok(Math.abs(detectPitch(soft, sr, 60, 1400, sensitivityToRms(10)).freq-196)<1, '
 const st = new NoteStabilizer(3);
 ok(!st.push('a') && !st.push('a') && st.push('a'), 'yeni nota 3 olcumden sonra kabul ediliyor');
 ok(!st.push('b') && st.push('a'), 'tek olcumluk sicrama gosterilen notayi degistirmiyor');
-ok(noteKey(analyze(perdeFreq(76,T),T)) !== noteKey(analyze(perdeFreq(75,T),T)), 'komsu perdeler farkli anahtar');
+ok(noteKey(analyze(writtenFreq(76,T),T)) !== noteKey(analyze(writtenFreq(75,T),T)), 'komsu notalar farkli anahtar');
 
 console.log('\n[11] Dizekteki yer');
 ok(staffPos(64).step===0 && staffPos(77).step===8, 'Mi4 alt cizgi, Fa5 ust cizgi');
@@ -430,6 +417,12 @@ ok(dup.length===0, 'betikler arasinda ayni ust duzey ad yok', dup.join(' | '));
 const sw = read('sw.js'), shell = [...sw.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
 const assets = [...scripts, ...[...html.matchAll(/<link rel="stylesheet" href="([^"h][^"]*)"/g)].map(m=>m[1])];
 ok(assets.every(a => shell.includes(a)), 'cevrimdisi onbellek butun betik ve stil dosyalarini iceriyor', assets.filter(a=>!shell.includes(a)).join(','));
+
+const fontRefs = [...read('css/fonts.css').matchAll(/url\(\.\.\/(fonts\/[^)]+)\)/g)].map(m=>m[1]);
+ok(fontRefs.length > 0 && fontRefs.every(f => fs.existsSync(path.join(__dirname, f)) && shell.includes(f)),
+   'fonts.css\'teki her font dosyasi var ve cevrimdisi onbellekte', fontRefs.filter(f => !shell.includes(f)).join(','));
+ok(['fraunces','commissioner','ibmplexmono','notomusic'].every(f => fs.existsSync(path.join(__dirname, 'fonts/OFL-'+f+'.txt'))) &&
+   !/fonts\.googleapis/.test(html), 'her fontun lisans metni var; sayfa Google Fonts\'a baglanmiyor');
 
 console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
 process.exit(fail?1:0);

@@ -2,24 +2,25 @@
 const Tabs = (() => {
   const nav = $("tabs");
   const btns = [...nav.querySelectorAll("[role=tab]")];
-  const ids = btns.map(b => b.getAttribute("aria-controls"));
+  // Panel id'leri "panel-<ad>", adres #<ad>: id ile adres ayrı olunca tarayıcı açılışta panele kaydırmaz
+  const ids = btns.map(b => b.getAttribute("aria-controls").replace("panel-", ""));
   let cur = null;
   function show(id, { focus = false } = {}){
     if(!ids.includes(id)) id = "dersler";
     cur = id;
     btns.forEach(b => {
-      const on = b.getAttribute("aria-controls") === id;
+      const on = b.getAttribute("aria-controls") === "panel-" + id;
       b.setAttribute("aria-selected", on ? "true" : "false");
       b.tabIndex = on ? 0 : -1;
       if(on && focus) b.focus();
       if(on) b.scrollIntoView({ block:"nearest", inline:"nearest" });
     });
-    ids.forEach(p => { $(p).hidden = p !== id; });
+    ids.forEach(p => { $("panel-" + p).hidden = p !== id; });
     store.set("tab", id);
     if(!/nota=\d+/.test(location.hash) && location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
     Bus.emit("tab", id);
   }
-  btns.forEach(b => b.addEventListener("click", () => show(b.getAttribute("aria-controls"))));
+  btns.forEach(b => b.addEventListener("click", () => show(b.getAttribute("aria-controls").replace("panel-", ""))));
   nav.addEventListener("keydown", e => {
     const step = {ArrowRight:1, ArrowLeft:-1}[e.key];
     let i = ids.indexOf(cur);

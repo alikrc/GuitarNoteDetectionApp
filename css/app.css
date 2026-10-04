@@ -383,3 +383,11 @@ details.editor summary{cursor:pointer;font-size:13px;font-weight:600;color:var(-
 .lyrnote:empty{display:none}
 .lyrbox{margin:12px 0 4px;padding:12px;border:1px dashed var(--line);border-radius:10px}
 .lyrbox textarea{min-height:110px;font-family:var(--ui)}
+
+/* ---- Telefonda ayar çubuğu katlanır ---- */
+.setbtn{display:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:640px){
+  .setbtn{display:inline-block}
+  .settings.collapsed{display:none}
+  .controls{gap:8px}
+}

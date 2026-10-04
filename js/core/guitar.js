@@ -150,13 +150,11 @@ function analyze(freq, transpose){
   const writtenF = concertF + transpose;
   const written = Math.round(writtenF);
   const cents = Math.round((writtenF-written)*100);
-  const comma = (writtenF-67)*53/12;
   const positions = positionsFor(written);
   return {
-    freq, cents, written, comma,
+    freq, cents, written, pitch: writtenF,     // pitch: kesirli yazılı MIDI (entonasyon izi için)
     writtenName: noteName(written),
     soundingName: noteName(written-transpose),
-    perde: nearestPerde(comma),
     positions,
     openString: (positions.find(p => p.fret===0) || {}).string || null,
     inRange: positions.length>0

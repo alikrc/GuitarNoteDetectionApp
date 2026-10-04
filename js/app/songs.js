@@ -21,7 +21,8 @@ const Songs = (() => {
       selEl.appendChild(g2);
     }
   }
-  function load(id){
+  // init: sayfa açılışında son şarkıyı yükler; o zaman şarkının capo'su uygulanmaz (kullanıcının capo'su korunur)
+  function load(id, init = false){
     song = all().find(s => s.id === id) || SONGS[0];
     selEl.value = song.id; store.set("song", song.id);
     rhyEl.value = song.rhythm; bpmEl.value = song.bpm;
@@ -32,7 +33,7 @@ const Songs = (() => {
       metaEl.append(" · ", a);
     }
     // Hazır şarkının capo'su Akorlar sekmesindeki capo'ya uygulanır
-    if(song.capo !== undefined && song.capo !== Chords.capo) Chords.setCapo(song.capo);
+    if(!init && song.capo !== undefined && song.capo !== Chords.capo) Chords.setCapo(song.capo);
     $("songlyrnote").textContent = song.lyricsNote ? song.lyricsNote + " İstersen “Sözleri kendin ekle” ile kendi tarayıcında ekleyebilirsin." : "";
     $("songlyrbtn").hidden = !song.lyricsNote;
     titleEl.value = song.id.startsWith("u-") ? song.title : "";
@@ -168,6 +169,6 @@ const Songs = (() => {
   });
 
   Bus.on("capo", () => render());
-  buildSelect(); load(store.get("song", SONGS[0].id));
+  buildSelect(); load(store.get("song", SONGS[0].id), true);
   return { open(id){ load(id); } };
 })();

@@ -19,13 +19,11 @@ const store = {
 };
 const settings = {
   a4: store.get("a4", 440),
-  mode: store.get("mode", "sent"),
   sens: store.get("sens", 5),
   tuning: store.get("tuning", "standart"),
   instrument: store.get("instrument", "akustik")
 };
 if(!(settings.a4 >= 430 && settings.a4 <= 450)) settings.a4 = 440;
-if(settings.mode !== "koma" && settings.mode !== "sent") settings.mode = "sent";
 if(!(settings.sens >= 1 && settings.sens <= 10)) settings.sens = 5;
 if(!TUNINGS[settings.tuning]) settings.tuning = "standart";
 if(!INSTRUMENTS[settings.instrument]) settings.instrument = "akustik";

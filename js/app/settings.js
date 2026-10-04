@@ -37,5 +37,22 @@ const SettingsBar = (() => {
   }
   sensIn.addEventListener("input", () => applySens(+sensIn.value));
   applySens(settings.sens);
+
+  // Telefonda ayar çubuğu ekranın yarısını kaplamasın: varsayılan kapalı, düğmede seçili çalgı ve akort özetlenir.
+  // Geniş ekranda düğme gizli, çubuk hep açık (CSS yalnızca dar ekranda .collapsed'i uygular).
+  const bar = $("settings"), setBtn = $("setbtn");
+  function summary(){
+    const inst = { klasik:"Klasik", akustik:"Akustik", elektro22:"Elektro", elektro24:"Elektro" }[settings.instrument];
+    setBtn.textContent = "⚙ " + inst + " · " + TUNINGS[settings.tuning].name.split(" · ")[0] + (settings.a4 !== 440 ? " · La " + settings.a4 : "") + (bar.classList.contains("collapsed") ? " ▾" : " ▴");
+  }
+  function setOpen(open){
+    bar.classList.toggle("collapsed", !open);
+    setBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    store.set("settingsOpen", open);
+    summary();
+  }
+  setBtn.addEventListener("click", () => setOpen(bar.classList.contains("collapsed")));
+  Bus.on("range", summary); Bus.on("a4", summary);
+  setOpen(store.get("settingsOpen", false));
   return {};
 })();

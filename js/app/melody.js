@@ -71,7 +71,7 @@ const Melody = (() => {
       demo.timers.push(setTimeout(() => {
         if(!demo) return;
         demo.voices.forEach(v => Snd.fadeOut(v));
-        demo.voices = [Snd.pluck(perdeFreq(n.written, T), Snd.ctx().currentTime, 0.3)];
+        demo.voices = [Snd.pluck(writtenFreq(n.written, T), Snd.ctx().currentTime, 0.3)];
         clearMarks(); mark(i, "now");
         nextEl.textContent = noteName(n.written).tr + " — " + posText(plan[i]);
       }, (at - a.currentTime)*1000));

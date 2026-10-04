@@ -1,41 +1,29 @@
 // Sap ve notalar sekmesi: duyulan nota ve sapma göstergesi, gitar sapı, konum talimatı, dizek, nota şeridi,
 // klavyeden çalma, entonasyon izi.
 const Sap = (() => {
-  const perdeEl=$("perde"), komaEl=$("koma"), needle=$("needle"), centtxt=$("centtxt"), track=$("track");
+  const noteEl=$("perde"), subEl=$("koma"), needle=$("needle"), centtxt=$("centtxt"), track=$("track");
   const writtenEl=$("written"), soundEl=$("sounding"), hzEl=$("hz"),
         fcode=$("fcode"), regEl=$("reg"), fnote=$("fnote"), stepsEl=$("steps"), announce=$("announce");
 
   const tr1 = x => x.toFixed(1).replace(".", ",");
-  // Önce yuvarla, sonra işaret koy: −0,0 yerine ±0,0 yazsın
-  const fmtKoma = d => { const v = Math.round(d*10)/10; return (v>0 ? "+" : v<0 ? "−" : "±") + tr1(Math.abs(v)); };
 
-  // ---- Gösterge ölçeği ----
-  // Sent modu: tampere notadan sapma (±50 sent). Koma modu: en yakın AEU perdesinden sapma (±2 koma).
-  const SCALE = { koma:{ max:2, ticks:[-2,-1,0,1,2], ok:0.25 }, sent:{ max:50, ticks:[-50,-25,0,25,50], ok:5 } };
-  function drawScale(trk, ndl, sc){
-    trk.querySelectorAll(".tick,.ticklab,.zone").forEach(n => n.remove());
+  // ---- Gösterge ölçeği: tampere notadan sapma, ±50 sent; ±5 sent yeşil ----
+  const SCALE = { max:50, ticks:[-50,-25,0,25,50], ok:5 };
+  (function drawScale(){
     const zone = document.createElement("div");
     zone.className = "zone";
-    zone.style.left = (50 - sc.ok/sc.max*50) + "%"; zone.style.width = (sc.ok/sc.max*100) + "%";
-    trk.insertBefore(zone, ndl);
-    sc.ticks.forEach(v => {
-      const pos = 50 + v/sc.max*50;
+    zone.style.left = (50 - SCALE.ok/SCALE.max*50) + "%"; zone.style.width = (SCALE.ok/SCALE.max*100) + "%";
+    track.insertBefore(zone, needle);
+    SCALE.ticks.forEach(v => {
+      const pos = 50 + v/SCALE.max*50;
       const t = document.createElement("div");
       t.className = "tick" + (v===0 ? " mid" : ""); t.style.left = pos + "%";
       const l = document.createElement("div");
       l.className = "ticklab"; l.style.left = Math.min(94, Math.max(6, pos)) + "%";
       l.textContent = (v>0 ? "+" : v<0 ? "−" : "") + Math.abs(v);
-      trk.insertBefore(t, ndl); trk.insertBefore(l, ndl);
+      track.insertBefore(t, needle); track.insertBefore(l, needle);
     });
-  }
-  const segBtns = document.querySelectorAll("#sap .seg button[data-mode]");
-  function applyMode(m){
-    settings.mode = m; store.set("mode", m);
-    segBtns.forEach(b => b.setAttribute("aria-checked", b.dataset.mode===m ? "true" : "false"));
-    drawScale(track, needle, SCALE[m]);
-    if(lastShown) show(lastShown);
-  }
-  segBtns.forEach(b => b.addEventListener("click", () => applyMode(b.dataset.mode)));
+  })();
 
   // ---- Gitar sapı ----
   const neck = $("neck");
@@ -130,7 +118,7 @@ const Sap = (() => {
     const cur = fingerList[fingerIdx];
     if(current === w && cur && cur.string === s && cur.fret === f){ stopNote(); return; }
     play(w);
-    show(analyze(perdeFreq(w, T), T));
+    show(analyze(writtenFreq(w, T), T));
     selectFingering(fingerList.findIndex(p => p.string === s && p.fret === f));
     manualMsg.textContent = s + ". tel, " + (f===0 ? "açık" : f + ". perde") + " — " + noteName(w).tr + " yazılı";
   }
@@ -228,34 +216,18 @@ const Sap = (() => {
   let lastShown = null, lastFingerKey = null;
   function show(r){
     lastShown = r;
-    const komaMode = settings.mode==="koma" && r.perde;
-    // Sent modunda büyük yazı nota adı, koma modunda AEU perde adı
-    perdeEl.textContent = settings.mode==="koma" && r.perde ? r.perde.name : r.writtenName.tr;
-    komaEl.textContent = !r.inRange
-      ? "yazılı " + r.writtenName.tr + " — seçili akortta sapta yok"
-      : settings.mode==="koma"
-        ? (r.perde ? fmtKoma(r.perde.delta) + " koma sapma" : "bu bölge için AEU perde adı yok")
-        : (r.perde ? "AEU: " + r.perde.name : "");
+    noteEl.textContent = r.writtenName.tr;
+    subEl.textContent = r.inRange ? "duyulan " + r.soundingName.tr : "yazılı " + r.writtenName.tr + " — seçili akortta sapta yok";
     writtenEl.innerHTML = r.writtenName.tr + " <em>" + r.writtenName.en + "</em>";
     soundEl.innerHTML  = r.soundingName.tr + " <em>" + r.soundingName.en + "</em>";
     hzEl.innerHTML     = tr1(r.freq) + " <em>Hz</em>";
-
     const openTxt = r.openString ? " · açık " + r.openString + ". tel" : "";
-    if(komaMode){
-      const c = Math.round(r.perde.delta*1200/53);
-      centtxt.textContent = "perdeden sapma: " + fmtKoma(r.perde.delta) + " koma (≈ " + (c>0?"+":"") + c + " sent)" + openTxt;
-    }else{
-      centtxt.textContent = "tampere notadan sapma: " + (r.cents>0?"+":"") + r.cents + " sent" +
-        (settings.mode==="koma" ? " — burada perde adı yok" : "") + openTxt;
-    }
-    // Ölçek seçili moda göre çizili; koma modunda perde yoksa sent değeri komaya çevrilir.
-    const shownSc = SCALE[settings.mode];
-    const v = komaMode ? r.perde.delta : settings.mode==="sent" ? r.cents : r.cents*53/1200;
-    needle.style.left = Math.max(0, Math.min(100, 50 + v/shownSc.max*50)) + "%";
-    needle.classList.toggle("good", Math.abs(v) <= shownSc.ok);
+    centtxt.textContent = "tampere notadan sapma: " + (r.cents>0?"+":"") + r.cents + " sent" + openTxt;
+    needle.style.left = Math.max(0, Math.min(100, 50 + r.cents/SCALE.max*50)) + "%";
+    needle.classList.toggle("good", Math.abs(r.cents) <= SCALE.ok);
 
     // Henüz iz yokken grafik ızgarasını gösterilen notaya ortala
-    if(!trace.length){ traceCenter = r.comma; drawTrace(); }
+    if(!trace.length){ traceCenter = r.pitch; drawTrace(); }
 
     regEl.textContent = r.inRange ? (r.positions.length === 1 ? "tek konum" : r.positions.length + " konumda çalınır") : "";
     const fk = r.inRange ? r.written : null;
@@ -265,7 +237,7 @@ const Sap = (() => {
     }
     markActive(fk);
   }
-  const sample = () => analyze(perdeFreq(67, T), T);   // yazılı Sol4 = açık 3. tel
+  const sample = () => analyze(writtenFreq(67, T), T);   // yazılı Sol4 = açık 3. tel
 
   // ---- Nota şeridi: tıkla / klavyeden çal ----
   const KEYCODES = [
@@ -287,12 +259,13 @@ const Sap = (() => {
     LOW = r.low; HIGH = r.high;
     cells.clear(); $("rail").replaceChildren();
     for(let i = 0; i <= HIGH - LOW; i++){
-      const w = LOW + i, p = nearestPerde((w-67)*53/12);
+      const w = LOW + i, p = positionsFor(w)[0];
       const key = layoutMap && layoutMap.get(KEYCODES[i]) ? layoutMap.get(KEYCODES[i]).toLocaleUpperCase("tr") : KEYLABEL[i];
       const el = document.createElement("button");
       el.className = "note"; el.type = "button";
       el.setAttribute("aria-label", "yazılı " + noteName(w).tr + " çal");
-      el.innerHTML = '<span class="pn">' + (p ? p.name : "—") + '</span>' +
+      // Kartın üstünde notanın temel konumu: tel · perde
+      el.innerHTML = '<span class="pn">' + (p ? p.string + ". tel · " + (p.fret === 0 ? "açık" : p.fret) : "—") + '</span>' +
                      '<span class="nn">' + noteName(w).tr + '</span>' +
                      (key ? '<span class="kk">' + key + '</span>' : '');
       el.setAttribute("aria-pressed", "false");
@@ -303,7 +276,7 @@ const Sap = (() => {
     const keyed = Math.min(KEYCODES.length, HIGH - LOW + 1), extra = HIGH - LOW + 1 - keyed;
     $("striplegend").innerHTML = "Alt sıra <strong>Z…</strong> kalın teller, orta sıra <strong>A…</strong>, üst sıra <strong>Q…</strong>, rakam sırası <strong>1…</strong> tiz bölge — yazılı " +
       noteName(LOW).tr + "’ten " + noteName(HIGH).tr + "’ya " + (HIGH-LOW+1) + " nota" + (extra ? " (en tiz " + extra + " tanesi yalnızca tıklanır)" : "") +
-      ". Kartın üstünde AEU perde adı yazar. Tuşlar klavyedeki fiziksel konuma göre çalışır; aynı tuş ya da Esc sesi durdurur.";
+      ". Kartın üstünde notanın temel konumu (tel · perde) yazar. Tuşlar klavyedeki fiziksel konuma göre çalışır; aynı tuş ya da Esc sesi durdurur.";
     if(lastShown) markActive(lastShown.inRange ? lastShown.written : null);
     markPlaying();
   }
@@ -326,7 +299,7 @@ const Sap = (() => {
   function play(w){
     Bus.emit("stopall");
     const a = Snd.ctx();
-    voice = Snd.pluck(perdeFreq(w, T), a.currentTime, 0.32);
+    voice = Snd.pluck(writtenFreq(w, T), a.currentTime, 0.32);
     current = w; markPlaying();
     const v = voice;
     voiceTimer = setTimeout(() => { if(voice === v){ voice = null; current = null; markPlaying(); } }, (v.end - a.currentTime)*1000);
@@ -339,7 +312,7 @@ const Sap = (() => {
   function toggleNote(w){
     if(current === w){ stopNote(); return; }
     play(w);
-    show(analyze(perdeFreq(w, T), T));
+    show(analyze(writtenFreq(w, T), T));
   }
   stopBtn.addEventListener("click", stopNote);
 
@@ -355,10 +328,10 @@ const Sap = (() => {
     cells.get(LOW + i).scrollIntoView({block:"nearest", inline:"nearest"});
   });
 
-  // ---- Entonasyon izi ----
+  // ---- Entonasyon izi: son 8 saniyede yazılı perde (yarım ses birimi); yatay çizgiler tampere notalar ----
   const canvas = $("trace"), TRACE_MS = 8000;
-  const trace = [];          // {t, comma} ya da {t, comma:null} (sessizlik)
-  let traceCenter = 0;
+  const trace = [];          // {t, pitch} ya da {t, pitch:null} (sessizlik)
+  let traceCenter = 67;
   function drawTrace(){
     const dpr = window.devicePixelRatio || 1;
     const W = canvas.clientWidth, H = canvas.clientHeight;
@@ -373,31 +346,27 @@ const Sap = (() => {
     const col = n => cs.getPropertyValue(n).trim();
     const now = performance.now();
     while(trace.length && now - trace[0].t > TRACE_MS) trace.shift();
-    const last = [...trace].reverse().find(p => p.comma!==null);
-    if(last) traceCenter += (last.comma - traceCenter) * 0.25;
-    const span = 6;                                   // görünen aralık: ±6 koma
+    const last = [...trace].reverse().find(p => p.pitch!==null);
+    if(last) traceCenter += (last.pitch - traceCenter) * 0.25;
+    const span = 2.5;                                 // görünen aralık: ±2,5 yarım ses
     const y = c => H/2 - (c - traceCenter)/span * (H/2 - 10);
-    const LEFT = 92;
+    const LEFT = 52;
     g.font = "500 10px " + col("--ui");
     g.textBaseline = "middle";
-    let lastLabelY = -1e9;
-    for(const [c,name] of [...PERDES].reverse()){          // tizden pese: üstten aşağı
-      if(Math.abs(c - traceCenter) > span) continue;
-      const yy = y(c);
+    for(let n = Math.ceil(traceCenter - span); n <= traceCenter + span; n++){
+      const yy = y(n);
       g.strokeStyle = col("--line"); g.lineWidth = 1;
       g.beginPath(); g.moveTo(LEFT, yy); g.lineTo(W, yy); g.stroke();
-      if(yy - lastLabelY < 13) continue;                   // 1 koma aralıklı perdelerde yazılar üst üste binmesin
       g.fillStyle = col("--muted");
-      g.fillText(name, 8, yy);
-      lastLabelY = yy;
+      g.fillText(noteName(n).tr, 8, yy);
     }
     g.strokeStyle = col("--accent"); g.lineWidth = 2; g.lineJoin = "round";
     g.beginPath();
     let pen = false;
     for(const p of trace){
-      if(p.comma===null){ pen = false; continue; }
+      if(p.pitch===null){ pen = false; continue; }
       const x = LEFT + (1 - (now - p.t)/TRACE_MS) * (W - LEFT);
-      const yy = Math.max(2, Math.min(H-2, y(p.comma)));
+      const yy = Math.max(2, Math.min(H-2, y(p.pitch)));
       if(pen) g.lineTo(x, yy); else { g.moveTo(x, yy); pen = true; }
     }
     g.stroke();
@@ -408,38 +377,37 @@ const Sap = (() => {
   function fromHash(){
     const m = /nota=(\d+)/.exec(location.hash);
     const w = m ? +m[1] : NaN;
-    return w>=LOW && w<=HIGH ? analyze(perdeFreq(w, T), T) : null;
+    return w>=LOW && w<=HIGH ? analyze(writtenFreq(w, T), T) : null;
   }
   window.addEventListener("hashchange", () => { const r = fromHash(); if(r && !Mic.running) show(r); });
 
   // ---- Mikrofon ve ayar olayları ----
   Bus.on("note", ({ r, now, isNew }) => {
     show(r);
-    perdeEl.style.opacity = 1;
-    trace.push({ t: now, comma: r.comma });
-    if(isNew) announce.textContent = (r.perde ? r.perde.name + ", " : "") + "yazılı " + r.writtenName.tr;
+    noteEl.style.opacity = 1;
+    trace.push({ t: now, pitch: r.pitch });
+    if(isNew) announce.textContent = "yazılı " + r.writtenName.tr;
     if(Tabs.current === "sap") drawTrace();
   });
   Bus.on("silence", () => {
-    perdeEl.style.opacity = .45;
-    if(trace.length && trace[trace.length-1].comma !== null) trace.push({ t: performance.now(), comma: null });
+    noteEl.style.opacity = .45;
+    if(trace.length && trace[trace.length-1].pitch !== null) trace.push({ t: performance.now(), pitch: null });
     if(Tabs.current === "sap") drawTrace();
   });
-  Bus.on("mic", on => { perdeEl.classList.toggle("resting", !on); perdeEl.style.opacity = 1; });
+  Bus.on("mic", on => { noteEl.classList.toggle("resting", !on); noteEl.style.opacity = 1; });
   Bus.on("stopall", stopNote);
   Bus.on("range", ev => {
     if(ev.instrument) buildNeck();
     labelOpenStrings(); buildStrip();
     lastFingerKey = null;
     const w = lastShown ? lastShown.written : null;
-    show(w !== null && positionsFor(w).length ? analyze(perdeFreq(w, T), T) : sample());
+    show(w !== null && positionsFor(w).length ? analyze(writtenFreq(w, T), T) : sample());
   });
-  Bus.on("a4", () => { trace.length = 0; if(!Mic.running) show(lastShown ? analyze(perdeFreq(lastShown.written, T), T) : sample()); });
+  Bus.on("a4", () => { trace.length = 0; if(!Mic.running) show(lastShown ? analyze(writtenFreq(lastShown.written, T), T) : sample()); });
   Bus.on("tab", id => { if(id === "sap") drawTrace(); });
 
   buildNeck(); labelOpenStrings(); focusPos(3, 0, false);
   buildStrip();
-  applyMode(settings.mode);
   show(fromHash() || sample());
   return { show };
 })();

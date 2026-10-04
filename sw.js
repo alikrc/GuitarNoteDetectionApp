@@ -1,11 +1,20 @@
 // Çevrimdışı kullanım: uygulama dosyaları önbellekte tutulur.
 // Kendi dosyalarımız önce ağdan istenir (güncellemeler hemen gelsin), ağ yoksa önbellekten verilir.
-// Google Fonts dosyaları ilk yüklemede önbelleğe alınır.
-const CACHE = "gitar-v6";
+// Fontlar uygulamayla birlikte gelir (fonts/), ayrıca indirilmez.
+const CACHE = "gitar-v8";
 const SHELL = [
   "./",
   "index.html",
+  "privacy.html",
+  "css/fonts.css",
   "css/app.css",
+  "fonts/Commissioner-latin-ext.woff2",
+  "fonts/Commissioner-latin.woff2",
+  "fonts/Fraunces-latin-ext.woff2",
+  "fonts/Fraunces-latin.woff2",
+  "fonts/IBMPlexMono-Medium.ttf",
+  "fonts/IBMPlexMono-Regular.ttf",
+  "fonts/NotoMusic-text.woff2",
   "js/core/music.js",
   "js/core/guitar.js",
   "js/core/chords.js",
@@ -27,7 +36,12 @@ const SHELL = [
   "js/app/lessons.js",
   "js/app/main.js",
   "manifest.webmanifest",
-  "icon.svg"
+  "icon.svg",
+  "icons/icon-192.png",
+  "icons/icon-512.png",
+  "icons/icon-maskable-192.png",
+  "icons/icon-maskable-512.png",
+  "icons/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", e => {
@@ -47,10 +61,5 @@ self.addEventListener("fetch", e => {
       if(res.ok){ const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return res;
     }).catch(() => caches.match(req, {ignoreSearch:true}).then(r => r || caches.match("index.html"))));
-  }else if(url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com"){
-    e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
-      const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy));
-      return res;
-    })));
   }
 });

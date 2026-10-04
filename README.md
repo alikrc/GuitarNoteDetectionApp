@@ -9,8 +9,9 @@ Mikrofondan çaldığını dinler ve geri bildirim verir. Ses cihazda işlenir, 
   Her dersin hedefi mikrofonla kontrol edilir; hedefe ulaşınca ders kendiliğinden tamamlanır, ilerleme tarayıcıda saklanır.
 - **Akort**: altı tel, hangi telin çalındığını kendisi bulur; ibre, sent sapması ve “burguyu sık / gevşet” talimatı,
   referans sesi. Altı tel de ±5 sent içinde kalınca tamam.
-- **Sap ve notalar**: duyulan nota, sent (ya da AEU koma) sapması, tıklanabilir sap (eşik + çalgıya göre 19–24 perde), aynı sesin
+- **Sap ve notalar**: duyulan nota ve tampere notadan sent sapması, tıklanabilir sap (eşik + çalgıya göre 19–24 perde), aynı sesin
   diğer konumları, adım adım talimat, dizek, tab, entonasyon izi, klavyeden çalınan nota şeridi.
+- **Telefonda** ayar çubuğu katlanır; düğmede seçili çalgı ve akort özetlenir.
 - **Akorlar**: 31 akor kutu şemasıyla (parmak numaraları, tel tel talimat, akor formülü, ipuçları), dinleme, **capo** (0–7),
   mikrofonla tel tel ya da tümü kontrolü, **akor değiştirme alıştırması** (1 dakikada iki akor arası temiz geçiş sayısı, rekor), sık dizilişler.
 - **Ritim**: 6 vuruş kalıbı (dörtlük, sekizlik, pop/folk, vals, Türk aksağı, Aksak), tempo, metronom, seçili akor ya da dizilişle
@@ -46,12 +47,15 @@ Belirli bir notayı bağlantıyla açmak için: `index.html#nota=67` (yazılı M
 ## Test
 
 ```bash
+npm install
 npm test
 ```
 
 Testler `js/core/` altındaki saf mantığı (nota/perde, sap konumları ve parmak planı, akorlar ve akor dinleme, capo, akor
 değiştirme sayacı, ritim ve vuruş yakalama, şarkı/ezgi ayrıştırma, kulak soruları, ders hedefleri) ve uygulama dosyalarının
-tutarlılığını (betik sırası, ad çakışması, çevrimdışı önbellek listesi) doğrular. GitHub Actions her push'ta testleri çalıştırır.
+tutarlılığını (betik sırası, ad çakışması, çevrimdışı önbellek listesi, fontlar) doğrular. `test-ui.js` sayfayı jsdom'da gerçek
+betiklerle açar (ses ve mikrofon sahte) ve sekmeleri, dersleri, akort, akor, capo, şarkı, ezgi, kulak, metronom ve ayarları
+tıklayarak dener. GitHub Actions her push'ta testleri çalıştırır.
 
 ## Kaynaklar
 
@@ -71,7 +75,6 @@ tutarlılığını (betik sırası, ad çakışması, çevrimdışı önbellek l
   Aksak 9/8 = 2+2+2+3 [Wikipedia — Aksak](https://en.wikipedia.org/wiki/Aksak); Türk aksağı 5/8 = 2+3, üç vuruşlu
   [TDV İslâm Ansiklopedisi](https://islamansiklopedisi.org.tr/turk-aksagi). Usullerin gitar vuruş yönlerine çevrilmesi bizim uyarlamamızdır.
 - Perde sayıları tipik değerlerdir; çalgı modeline göre değişebilir.
-- AEU perde listesi Sol Klarnet Dinleyici'den alındı.
 - Türkçe şarkıların akorları Ultimate Guitar kullanıcı akor sayfalarından alındı (her şarkıda bağlantı var), uygulamadaki
   şekillere sadeleştirildi; kaynakta süre bilgisi olmadığı için ölçü süreleri, tempo ve vuruş önerisi yaklaşıktır.
 - Türkülerin akorları da Ultimate Guitar kullanıcı sayfalarından; Sarı Gelin ve Yemen Türküsü sayfaları oylanmamış, doğrulanmamıştır.
@@ -85,8 +88,11 @@ tutarlılığını (betik sırası, ad çakışması, çevrimdışı önbellek l
 | `css/app.css` | Stiller (açık/koyu tema) |
 | `js/core/` | Saf mantık, tarayıcı ve Node testleri ortak: `music` (nota, perde bulucu, FFT), `guitar` (akort, sap, parmak planı), `chords`, `rhythm`, `songs`, `ear`, `lessons` |
 | `js/app/` | Arayüz modülleri: `base` (ayarlar, olay yolu, ses üretimi, mikrofon), `tabs`, `settings`, `metronome`, `sap`, `tuner`, `chords`, `rhythm`, `songs`, `melody`, `ear`, `lessons`, `main` |
-| `sw.js`, `manifest.webmanifest`, `icon.svg` | Çevrimdışı kullanım ve ana ekrana ekleme |
-| `test.js` | Testler |
+| `sw.js`, `manifest.webmanifest`, `icon.svg`, `icons/`, `screenshots/` | Çevrimdışı kullanım, ana ekrana ekleme, mağaza görselleri |
+| `fonts/`, `css/fonts.css` | Uygulamayla gelen fontlar ve lisansları (OFL) |
+| `privacy.html` | Gizlilik politikası (Türkçe + İngilizce) |
+| `docs/PLAY_STORE.md` | Android (Play Store) yayını için yapılacaklar |
+| `test.js`, `test-ui.js` | Mantık ve arayüz testleri |
 
 Betikler klasik `<script>` olarak sırayla yüklenir (derleme adımı yok). Her uygulama dosyası tek bir genel modül nesnesi
 tanımlar; modüller birbirine `Bus` olaylarıyla haber verir.
