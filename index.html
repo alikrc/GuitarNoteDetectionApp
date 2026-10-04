@@ -334,6 +334,7 @@
         <div class="field"><label class="label" for="songbpm">Tempo</label><input type="number" class="num" id="songbpm" min="40" max="160" step="5"></div>
       </div>
       <p class="cformula" id="songmeta"></p>
+      <p class="lyrnote" id="songlyrnote"></p>
       <div class="label">Bu şarkıdaki akorlar</div>
       <div class="minis" id="songchords"></div>
       <div class="sheet" id="songsheet" aria-live="off"></div>
@@ -342,6 +343,7 @@
         <button type="button" class="primary small" id="songdemo">Dinle</button>
         <button type="button" class="stopbtn" id="songplay">Birlikte çal · mikrofonla</button>
         <button type="button" class="stopbtn" id="songstop" disabled>Durdur</button>
+        <button type="button" class="stopbtn" id="songlyrbtn">Sözleri kendin ekle</button>
       </div>
       <div class="cresult" id="songres" aria-live="polite">Dinle: şarkıyı seçili vuruşla çalar, çalan akor sözlerin üstünde yanar. Birlikte çal: bir ölçü sayar, sonra sen çalarsın; sonunda vuruşlarının yüzde kaçının zamanında olduğunu söylerim. Capo Akorlar sekmesinden ayarlanır.</div>
       <details class="editor" id="songeditor">
@@ -351,6 +353,12 @@
           <div class="field grow"><label class="label" for="songtitle">Başlık</label><input type="text" id="songtitle" placeholder="Şarkının adı"></div>
         </div>
         <textarea id="songtext" spellcheck="false" aria-label="Şarkı metni"></textarea>
+        <div class="lyrbox">
+          <label class="label" for="songlyrics">Sözleri yapıştır (isteğe bağlı)</label>
+          <p class="lead">Sözleri satır satır yapıştır ve “Akorlarla eşleştir”e bas: her söz satırı sıradaki akor satırına yerleşir, akorlar sözcüklere eşit dağıtılır. Sonra yukarıdaki metinde akorların yerini elle düzeltebilirsin. Kaydettiğin şarkı yalnızca bu tarayıcıda kalır; siteye ya da başka bir yere gönderilmez.</p>
+          <textarea id="songlyrics" spellcheck="false" aria-label="Sözler" placeholder="Sözler, her satır ayrı"></textarea>
+          <div class="cbtns"><button type="button" class="stopbtn" id="songmerge">Akorlarla eşleştir</button></div>
+        </div>
         <div class="err" id="songerr" aria-live="polite"></div>
         <div class="cbtns">
           <button type="button" class="primary small" id="songsave">Kaydet</button>

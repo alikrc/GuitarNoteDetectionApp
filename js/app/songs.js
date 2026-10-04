@@ -3,14 +3,14 @@ const Songs = (() => {
   const selEl=$("songsel"), rhyEl=$("songrhy"), bpmEl=$("songbpm"), metaEl=$("songmeta"), sheetEl=$("songsheet"),
         chordsEl=$("songchords"), nowEl=$("songnow"), resEl=$("songres"), stopBtn=$("songstop"),
         titleEl=$("songtitle"), textEl=$("songtext"), errEl=$("songerr"), RES_HINT = resEl.innerHTML;
-  let user = store.get("songs", []);            // [{ id, title, text, rhythm, bpm }]
+  let user = store.get("songs", []);            // [{ id, title, text, rhythm, bpm, capo?, source? }]
   let song = null, parsed = null, playing = null, totals = null;
 
   for(const r of RHYTHMS) rhyEl.appendChild(new Option(r.name + " · " + r.meter.split(" ")[0], r.id));
   function all(){ return [...SONGS, ...user]; }
   function buildSelect(){
     selEl.replaceChildren();
-    for(const [g, label] of [["tr", "Türkçe pop / rock (yalnız akorlar)"], ["pd", "Sözlü (kamu malı)"], ["ex", "Alıştırmalar"]]){
+    for(const [g, label] of [["tr", "Türkçe pop / rock"], ["turku", "Türküler (anonim)"], ["pd", "Yabancı (kamu malı)"], ["ex", "Alıştırmalar"]]){
       const og = document.createElement("optgroup"); og.label = label;
       SONGS.filter(s => s.group === g).forEach(s => og.appendChild(new Option(s.artist ? s.artist + " — " + s.title : s.title, s.id)));
       selEl.appendChild(og);
@@ -28,11 +28,13 @@ const Songs = (() => {
     metaEl.textContent = song.meta || "Kendi şarkın";
     if(song.source){
       const a = document.createElement("a");
-      a.href = song.source; a.target = "_blank"; a.rel = "noopener"; a.textContent = "sözler ve kaynak akorlar";
+      a.href = song.source; a.target = "_blank"; a.rel = "noopener"; a.textContent = "kaynak akor sayfası";
       metaEl.append(" · ", a);
     }
     // Hazır şarkının capo'su Akorlar sekmesindeki capo'ya uygulanır
     if(song.capo !== undefined && song.capo !== Chords.capo) Chords.setCapo(song.capo);
+    $("songlyrnote").textContent = song.lyricsNote ? song.lyricsNote + " İstersen “Sözleri kendin ekle” ile kendi tarayıcında ekleyebilirsin." : "";
+    $("songlyrbtn").hidden = !song.lyricsNote;
     titleEl.value = song.id.startsWith("u-") ? song.title : "";
     textEl.value = song.id.startsWith("u-") ? song.text : "";
     $("songdel").disabled = !song.id.startsWith("u-");
@@ -128,11 +130,32 @@ const Songs = (() => {
     let s = song && song.id.startsWith("u-") ? user.find(u => u.id === song.id) : null;
     if(!s){ s = { id: "u-" + Date.now() }; user.push(s); }
     Object.assign(s, { title, text: textEl.value, rhythm: rhyEl.value, bpm: Math.min(160, Math.max(40, +bpmEl.value || 80)) });
+    if(draft){ if(draft.capo) s.capo = draft.capo; if(draft.source) s.source = draft.source; draft = null; }
     store.set("songs", user);
     buildSelect(); load(s.id);
     errEl.textContent = "Kaydedildi (yalnızca bu tarayıcıda).";
   });
+  // Hazır şarkıyı sözlü kopyaya dönüştürmek: akorlar editöre gelir, sözleri kullanıcı yapıştırır
+  let draft = null;
+  $("songlyrbtn").addEventListener("click", () => {
+    draft = { capo: song.capo || 0, source: song.source || null };
+    const base = song;
+    song = { id:"u-yeni", title:"", text:"", rhythm: base.rhythm, bpm: base.bpm };
+    titleEl.value = (base.artist && !base.artist.startsWith("Anonim") && base.artist !== "Geleneksel" ? base.artist + " — " : "") + base.title + " (sözlü)";
+    textEl.value = base.text; $("songlyrics").value = "";
+    $("songdel").disabled = true;
+    errEl.textContent = "Akorlar kopyalandı. Sözleri aşağıya yapıştırıp “Akorlarla eşleştir”e bas, sonra Kaydet.";
+    $("songeditor").open = true;
+    $("songlyrics").focus();
+  });
+  $("songmerge").addEventListener("click", () => {
+    const lyr = $("songlyrics").value;
+    if(!lyr.trim()){ errEl.textContent = "Önce sözleri yapıştır."; return; }
+    textEl.value = mergeLyrics(textEl.value, lyr);
+    textEl.dispatchEvent(new Event("input"));
+  });
   $("songnew").addEventListener("click", () => {
+    draft = null;
     song = { id:"u-yeni", title:"", text:"", rhythm:"pop", bpm:80 };
     titleEl.value = ""; textEl.value = "[Am]Birinci satır [F]sözleri\n[C]ikinci [G*2]satır";
     $("songdel").disabled = true; errEl.textContent = "";

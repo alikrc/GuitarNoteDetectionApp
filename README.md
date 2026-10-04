@@ -17,10 +17,12 @@ Mikrofondan çaldığını dinler ve geri bildirim verir. Ses cihazda işlenir, 
   çalma; *birlikte çal* modunda her vuruşun zamanlaması (erken/geç ms, kaçan, fazla), gecikme ölçümü.
 - **Metronom**: üst çubuktan açılır, her sekmede çalışır (akor ya da ezgi çalarken de); 30–220 BPM, ölçü ve vurgu seçimi,
   dokunarak tempo, görsel vuruş. Mikrofon dinlerken de kullanılabilir: tık sesi vuruş yakalamayı bozmaz.
-- **Şarkılar**: Türkçe pop/rock şarkıların akor şemaları (Barış Manço, Teoman, Duman, MFÖ, Mor ve Ötesi, Cem Karaca, Yüksek Sadakat,
-  Model, Ahmet Kaya) bölüm bölüm; sözler telifli olduğu için uygulamada yok, her şarkıda sözler için kaynak bağlantısı var.
-  Kamu malı şarkılar sözleriyle. Akorlu söz sayfası; çalan akor sözlerin üstünde yanar, sıradaki akor gösterilir. Dinle ya da mikrofonla birlikte çal
-  (sonunda zamanlama yüzdesi). Kendi şarkını `[Am]söz [G*2]söz` biçiminde yazıp kaydedebilirsin.
+- **Şarkılar**: Türkçe pop/rock (Barış Manço, Teoman, Duman, MFÖ, Mor ve Ötesi, Cem Karaca, Yüksek Sadakat, Model, Ahmet Kaya),
+  anonim türküler (Kâtibim, Sarı Gelin, Yemen Türküsü) ve kamu malı yabancı şarkıların akorları bölüm bölüm. Uygulama şarkı
+  sözü içermez: Türkçe pop/rock şarkıların sözleri telifli olduğu için eklenmedi, bu ekranda da yazar. **Sözleri kendin ekle**
+  akorları editöre kopyalar; sözleri yapıştırınca her satır sıradaki akor satırıyla eşleşir. Sözlü kopya yalnızca senin
+  tarayıcında saklanır. Çalan akor yanar, sıradaki gösterilir; dinle ya da mikrofonla birlikte çal (sonunda zamanlama yüzdesi).
+  Kendi şarkını `[Am]söz [G*2]söz` biçiminde de yazabilirsin.
 - **Ezgiler**: nota nota çalma; her notanın teli, perdesi ve parmağı komşu notalara göre seçilir (pozisyon planı), tab. Doğru notayı
   duyunca sıradakine geçer, yanlışta ne duyduğunu söyler. Kendi ezgini `Mi4 Re4 Do4:2` biçiminde yazabilirsin.
 - **Kulak**: majör/minör, majör/minör/yedili, aralıklar, hangi açık tel; 10 soruluk turlar, en iyi puan.
@@ -72,8 +74,8 @@ tutarlılığını (betik sırası, ad çakışması, çevrimdışı önbellek l
 - AEU perde listesi Sol Klarnet Dinleyici'den alındı.
 - Türkçe şarkıların akorları Ultimate Guitar kullanıcı akor sayfalarından alındı (her şarkıda bağlantı var), uygulamadaki
   şekillere sadeleştirildi; kaynakta süre bilgisi olmadığı için ölçü süreleri, tempo ve vuruş önerisi yaklaşıktır.
-- Sözlü hazır şarkılar ve ezgiler kamu malı eserlerdir (Amazing Grace, Happy Birthday to You, Neşeye Övgü, Twinkle Twinkle, Frère Jacques);
-  akorlar basitleştirilmiştir.
+- Türkülerin akorları da Ultimate Guitar kullanıcı sayfalarından; Sarı Gelin ve Yemen Türküsü sayfaları oylanmamış, doğrulanmamıştır.
+- Hazır ezgiler kamu malı eserlerdir (Neşeye Övgü, Twinkle Twinkle, Frère Jacques).
 
 ## Dosyalar
 

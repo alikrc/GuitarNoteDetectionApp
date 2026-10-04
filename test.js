@@ -353,7 +353,16 @@ ok(cc.changes===3, 'Em→Am→Em→Am: 3 gecis (tek karelik Am ve araya giren C 
 console.log('\n[20] Sarkilar ve ezgiler');
 const ag = parseSong(SONGS.find(s=>s.id==='amazing-grace').text);
 ok(ag.errors.length===0 && ag.bars.length===16 && ag.bars.slice(0,5).join()==='G,G,C,G,G', 'Amazing Grace: 16 olcu, G G C G G …', ag.bars.join(','));
-ok(ag.lines[0][0].lyric==='A' && ag.lines[0][1].chord==='G' && ag.lines[0][1].bar===0 && ag.lines[0][1].lyric.startsWith('mazing'), 'on vurus sozu akorsuz parca');
+const pick = parseSong('A[G*2]mazing grace');
+ok(pick.lines[0][0].lyric==='A' && pick.lines[0][1].chord==='G' && pick.lines[0][1].bar===0 && pick.lines[0][1].lyric.startsWith('mazing'), 'on vurus sozu akorsuz parca');
+ok(SONGS.filter(s => s.group!=='ex').every(s => s.lyricsNote && !/[a-zçğıöşü]{3,}/i.test(s.text.replace(/\[[^\]]*\]/g,'').replace(/(Giriş|Kıta|Nakarat|Ön nakarat|Köprü|Ara|Bitiş|Solo|bölüm|satır)/g,''))),
+   'hazir sarkilarda soz yok, her birinde soz notu var');
+ok(SONGS.filter(s => s.group==='tr').every(s => s.lyricsNote.includes('telif')), 'Turkce pop/rock sarkilarda “telifli oldugu icin” notu');
+const { mergeLyrics } = core;
+const merged = mergeLyrics('Kıta: [Am] [Dm]\n[G*2]\nNakarat: [C]', 'bir iki uc dort\nbes alti\nyedi\nsekiz');
+ok(merged === 'Kıta: [Am]bir iki [Dm]uc dort\n[G*2]bes alti\nNakarat: [C]yedi\nsekiz', 'sozler akor satirlarina dagitiliyor, etiket korunuyor, artan satir sona ekleniyor', JSON.stringify(merged));
+ok(parseSong(merged).bars.join()==='Am,Dm,G,G,C', 'eslesmis metin ayni olculeri veriyor');
+ok(mergeLyrics('[Am] [F] [C] [G]', 'tek') === '[Am][F][C][G]tek' && mergeLyrics('[Am]\n[F]', 'x') === '[Am]x\n[F]', 'sozcukten cok akor ve sozun bitmesi');
 let songErr = [];
 for(const s of SONGS){ const p = parseSong(s.text); if(p.errors.length || !p.bars.length || !rhythmById(s.rhythm)) songErr.push(s.id); }
 ok(songErr.length===0, 'butun hazir sarkilar ayristiriliyor, akorlari ve ritimleri var', songErr.join(','));

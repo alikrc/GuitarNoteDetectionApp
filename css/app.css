@@ -378,3 +378,8 @@ details.editor summary{cursor:pointer;font-size:13px;font-weight:600;color:var(-
 .mdots i.acc{box-shadow:inset 0 0 0 2px var(--accent)}
 .mdots i.now{background:var(--teal);box-shadow:none}
 .mdots i.acc.now{background:var(--accent)}
+
+.lyrnote{font-size:12.5px;color:var(--accent);margin:-6px 0 12px}
+.lyrnote:empty{display:none}
+.lyrbox{margin:12px 0 4px;padding:12px;border:1px dashed var(--line);border-radius:10px}
+.lyrbox textarea{min-height:110px;font-family:var(--ui)}
