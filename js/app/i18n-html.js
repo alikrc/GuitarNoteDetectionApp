@@ -3,7 +3,7 @@
 const UiText = (() => {
   defStr({
     "h.klasik-akustik-elektro": { tr:"Klasik · akustik · elektro gitar", en:"Classical · acoustic · electric guitar" },
-    "h.gitar-dinleyici": { tr:"Gitar Dinleyici", en:"Gitar Dinleyici" },
+    "h.app-name": { tr:"Pena", en:"Pena" },
     "h.gitari-akort-et": { tr:"Gitarı akort et, sapta notaları, akorları ve ritimleri öğren; şarkı ve ezgi çal, kulağını eğit. Mikrofonla seni dinler ve doğru mu çaldığını söyler. Yeni başlıyorsan Dersler sekmesindeki sırayı izle.", en:"Tune your guitar, learn the notes on the neck, chords and strumming; play songs and melodies and train your ear. It listens through the microphone and tells you whether you played it right. New to guitar? Follow the order in the Lessons tab." },
     "h.metrobtn": { tr:"♩ Metronom", en:"♩ Metronome" },
     "h.metro-label": { tr:"Metronom", en:"Metronome" },
@@ -134,7 +134,7 @@ const UiText = (() => {
     "h.earanswers-label": { tr:"Cevaplar", en:"Answers" },
     "h.earmsg": { tr:"“Soruyu çal”a bas, dinle ve cevabı seç. Bir tur 10 soru.", en:"Press “Play question”, listen and pick the answer. A round is 10 questions." },
     "h.calgi-secimi-sapin": { tr:"Çalgı seçimi sapın perde sayısını (klasik 19, akustik 20, elektro 22 ya da 24; tipik değerler) ve örnek sesin tınısını değiştirir. Elektro gitar amfisiz çok kısık duyulur: mikrofonu amfinin hoparlörüne yakın tut ya da gitarı bir ses kartına bağlayıp tarayıcının mikrofon izninde o girişi seç. Ses cihazında işlenir, hiçbir yere gönderilmez (<a href=\"privacy.html\">gizlilik</a>). Kaynaklar ve ayrıntılar için <a href=\"https://github.com/alikrc/GuitarNoteDetectionApp\" target=\"_blank\" rel=\"noopener\">depodaki README</a>.", en:"The instrument setting changes the number of frets on the neck (classical 19, acoustic 20, electric 22 or 24; typical values) and the tone of the example sounds. An unplugged electric guitar is very quiet: hold the microphone near the amp's speaker, or connect the guitar to an audio interface and choose that input in the browser's microphone permission. Audio is processed on your device and sent nowhere (<a href=\"privacy.html\">privacy</a>). For sources and details see the <a href=\"https://github.com/alikrc/GuitarNoteDetectionApp\" target=\"_blank\" rel=\"noopener\">README in the repository</a>." },
-    "h.title": { tr:"Gitar Dinleyici", en:"Gitar Dinleyici — guitar tuner and trainer" },
+    "h.title": { tr:"Pena – Gitar Öğren ve Akort Et", en:"Pena – Learn Guitar & Tune" },
     "h.desc": { tr:"Gitar öğrenme ve akort aracı: akort, sapta notalar, akorlar, ritim, şarkılar, ezgiler ve kulak eğitimi; mikrofonla dinleyip geri bildirim verir.", en:"Guitar learning and tuning app: tuner, notes on the neck, chords, rhythm, songs, melodies and ear training; listens through the microphone and gives feedback." },
     "pref.lang": { tr:"English", en:"Türkçe" },
     "pref.langAria": { tr:"Dili İngilizce yap", en:"Switch language to Turkish" },

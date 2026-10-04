@@ -1,4 +1,6 @@
-# Gitar Dinleyici
+# Pena – Gitar Öğren ve Akort Et
+
+*Pena – Learn Guitar & Tune*
 
 **Uygulamayı aç: https://alikrc.github.io/GuitarNoteDetectionApp/**
 

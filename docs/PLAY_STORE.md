@@ -17,7 +17,7 @@ Android kabuğudur: site güncellenince uygulama da güncellenir, mağazaya yeni
 1. **Alan adı kararı.** TWA'nın adres çubuğunu gizleyebilmesi için alan adının **kökünde**
    `/.well-known/assetlinks.json` olmalı. `alikrc.github.io/GuitarNoteDetectionApp/` alt dizinde olduğu için bu dosya
    oraya konamaz. Seçenekler:
-   - Kendi alan adı (önerilen; ör. `gitardinleyici.com`): GitHub Pages ayarlarında *Custom domain* olarak bağlanır.
+   - Kendi alan adı (önerilen; ör. `pena.app`): GitHub Pages ayarlarında *Custom domain* olarak bağlanır.
    - `alikrc.github.io` kullanıcı sitesi deposunun köküne `assetlinks.json` koymak (diğer projelerle aynı alan adını paylaşır).
 2. **Geliştirici hesabı:** Play Console, bir kerelik 25 dolar ve kimlik doğrulaması.
 3. **Paketi üret** (Node gerekir):
@@ -25,7 +25,7 @@ Android kabuğudur: site güncellenince uygulama da güncellenir, mağazaya yeni
    npx @bubblewrap/cli init --manifest https://ALAN-ADI/manifest.webmanifest
    npx @bubblewrap/cli build
    ```
-   - Paket adı önerisi: `com.alikrc.gitardinleyici`
+   - Paket adı önerisi: `com.alikrc.pena`
    - Bubblewrap bir **imzalama anahtarı** üretir: kaybolursa güncelleme yayınlanamaz, güvenli bir yerde yedekle.
    - Mikrofon izni: TWA, sitenin istediği izinleri Chrome üzerinden sorar; ayrıca `RECORD_AUDIO` gerekmez
      (Bubblewrap sorarsa ekle).
