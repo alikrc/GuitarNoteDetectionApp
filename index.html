@@ -2,10 +2,11 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pena – Gitar Öğren ve Akort Et</title>
 <meta name="description" content="Gitar öğrenme ve akort aracı: akort, sapta notalar, akorlar, ritim, şarkılar, ezgiler ve kulak eğitimi; mikrofonla dinleyip geri bildirim verir.">
-<meta name="theme-color" content="#1C5B59">
+<meta name="theme-color" content="#ECEFEE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1413" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -23,23 +24,68 @@
 </head>
 <body>
 
-<div class="page">
-  <header>
-    <div class="eyebrow" data-i18n="h.klasik-akustik-elektro">Klasik · akustik · elektro gitar</div>
-    <h1 data-i18n="h.app-name">Pena</h1>
-    <p class="lede" data-i18n="h.gitari-akort-et">Gitarı akort et, sapta notaları, akorları ve ritimleri öğren; şarkı ve ezgi çal, kulağını eğit. Mikrofonla seni dinler ve doğru mu çaldığını söyler. Yeni başlıyorsan Dersler sekmesindeki sırayı izle.</p>
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <symbol id="i-les" viewBox="0 0 24 24"><path d="M2.5 9 12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11.3V16c0 1.3 2.5 3 5.5 3s5.5-1.7 5.5-3v-4.7"/><path d="M21.5 9v5"/></symbol>
+  <symbol id="i-tune" viewBox="0 0 24 24"><path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 17l4.5-6"/><circle cx="12" cy="17" r="1.6"/><path d="M6.5 11.5l1 1M12 8.5V10M17.5 11.5l-1 1"/></symbol>
+  <symbol id="i-neck" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="1.5"/><path d="M6.5 7.5h11M6.5 12.5h11M6.5 17h11M10.2 2.5v19M13.8 2.5v19"/></symbol>
+  <symbol id="i-chord" viewBox="0 0 24 24"><path d="M5 4h14M5 4v16M9.7 4v16M14.3 4v16M19 4v16M5 9.5h14M5 15h14"/><circle cx="9.7" cy="6.8" r="1.7" fill="currentColor" stroke="none"/><circle cx="14.3" cy="12.2" r="1.7" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-rhythm" viewBox="0 0 24 24"><path d="M6 19V5M10 15V9M14 19V5M18 15V9"/><path d="M4 7l2-2 2 2M12 17l2 2 2-2"/></symbol>
+  <symbol id="i-song" viewBox="0 0 24 24"><path d="M9 18V5.5l11-2V16"/><circle cx="6.2" cy="18" r="2.8"/><circle cx="17.2" cy="16" r="2.8"/></symbol>
+  <symbol id="i-melody" viewBox="0 0 24 24"><path d="M12 18V4c1.5 2.5 5.5 2.5 6.5 6"/><circle cx="8.7" cy="18" r="3.3"/></symbol>
+  <symbol id="i-ear" viewBox="0 0 24 24"><path d="M6.5 9a5.5 5.5 0 0 1 11 0c0 3.5-3.5 4.5-3.5 8a3 3 0 0 1-6 0"/><path d="M9.5 9.2a2.5 2.5 0 0 1 5 0c0 1.5-1.5 2-2.5 2.8"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/></symbol>
+  <symbol id="i-metro" viewBox="0 0 24 24"><path d="M9.5 3h5l3.5 18H6z"/><path d="M6.8 17h10.4M12 15l5-9"/></symbol>
+  <symbol id="i-set" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <aside class="side">
+    <a class="brand" id="brand" href="#dersler">
+      <img src="icon.svg" alt="" width="40" height="40">
+      <div class="brandtext">
+        <h1 data-i18n="h.app-name">Pena</h1>
+        <div class="eyebrow" data-i18n="h.klasik-akustik-elektro">Klasik · akustik · elektro gitar</div>
+      </div>
+    </a>
+    <nav class="nav" id="nav">
+      <div class="tabs" id="tabs" role="tablist" aria-label="Bölümler" data-i18n-attr="aria-label:h.tabs-label">
+        <button type="button" role="tab" id="tab-dersler" aria-controls="panel-dersler"><svg class="ico" aria-hidden="true"><use href="#i-les"/></svg><span class="tl" data-i18n="h.tab-dersler">Dersler</span></button>
+        <button type="button" role="tab" id="tab-akort" aria-controls="panel-akort"><svg class="ico" aria-hidden="true"><use href="#i-tune"/></svg><span class="tl" data-i18n="h.tab-akort">Akort</span></button>
+        <button type="button" role="tab" id="tab-akorlar" aria-controls="panel-akorlar"><svg class="ico" aria-hidden="true"><use href="#i-chord"/></svg><span class="tl" data-i18n="h.tab-akorlar">Akorlar</span></button>
+        <button type="button" role="tab" id="tab-sarkilar" aria-controls="panel-sarkilar"><svg class="ico" aria-hidden="true"><use href="#i-song"/></svg><span class="tl" data-i18n="h.tab-sarkilar">Şarkılar</span></button>
+        <div class="tabmore" id="tabmore">
+          <div class="navlabel" aria-hidden="true" data-i18n="h.daha-fazla">Daha fazla</div>
+          <button type="button" role="tab" id="tab-sap" aria-controls="panel-sap"><svg class="ico" aria-hidden="true"><use href="#i-neck"/></svg><span class="tl" data-i18n="h.tab-sap">Sap ve notalar</span></button>
+          <button type="button" role="tab" id="tab-ritim" aria-controls="panel-ritim"><svg class="ico" aria-hidden="true"><use href="#i-rhythm"/></svg><span class="tl" data-i18n="h.tab-ritim">Ritim</span></button>
+          <button type="button" role="tab" id="tab-ezgiler" aria-controls="panel-ezgiler"><svg class="ico" aria-hidden="true"><use href="#i-melody"/></svg><span class="tl" data-i18n="h.tab-ezgiler">Ezgiler</span></button>
+          <button type="button" role="tab" id="tab-kulak" aria-controls="panel-kulak"><svg class="ico" aria-hidden="true"><use href="#i-ear"/></svg><span class="tl" data-i18n="h.tab-kulak">Kulak</span></button>
+        </div>
+      </div>
+      <button type="button" class="morebtn" id="morebtn" aria-expanded="false" aria-controls="tabmore"><svg class="ico" aria-hidden="true"><use href="#i-more"/></svg><span class="tl" data-i18n="h.daha">Daha</span></button>
+    </nav>
+  </aside>
+
+  <div class="main">
+  <header class="appbar">
+    <div class="titles">
+      <h2 class="viewtitle" id="viewtitle">Dersler</h2>
+      <span class="chip" id="chip">mikrofon kapalı</span>
+    </div>
+    <div class="actions">
+      <button type="button" class="iconbtn langbtn" id="langbtn" lang="en">EN</button>
+      <button type="button" class="iconbtn metrobtn" id="metrobtn" aria-controls="metro" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-metro"/></svg><span class="lbl" data-i18n="h.metrobtn">Metronom</span></button>
+      <button type="button" class="iconbtn setbtn" id="setbtn" aria-controls="settings" aria-expanded="false" aria-haspopup="dialog"><svg class="ico" aria-hidden="true"><use href="#i-set"/></svg><span class="sr" data-i18n="h.ayarlar">Ayarlar</span><span class="lbl" id="setsum"></span></button>
+      <button type="button" class="primary micbtn-top" id="btn"><svg class="ico" aria-hidden="true"><use href="#i-mic"/></svg><span class="lbl" id="btnlbl">Mikrofonu başlat</span></button>
+    </div>
   </header>
 
-  <div class="controls">
-    <button class="primary" id="btn">Mikrofonu başlat</button>
-    <span class="chip" id="chip">mikrofon kapalı</span>
-    <button type="button" class="stopbtn metrobtn" id="metrobtn" aria-controls="metro" aria-expanded="false" data-i18n="h.metrobtn">♩ Metronom</button>
-    <button type="button" class="stopbtn setbtn" id="setbtn" aria-controls="settings" aria-expanded="true">⚙ Ayarlar</button>
-    <button type="button" class="stopbtn" id="themebtn">◐ Tema: otomatik</button>
-    <button type="button" class="stopbtn" id="langbtn">English</button>
-  </div>
-
   <div class="metro card" id="metro" role="region" aria-label="Metronom" hidden data-i18n-attr="aria-label:h.metro-label">
+    <div class="metrohead">
+      <div class="label" data-i18n="h.metro-label">Metronom</div>
+      <button type="button" class="iconbtn small" id="mclose" aria-label="Kapat" data-i18n-attr="aria-label:h.kapat"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
     <div class="row">
       <div class="field">
         <label class="label" for="mbpm" data-i18n="h.tempo">Tempo</label>
@@ -52,62 +98,38 @@
       </div>
       <div class="field"><label class="label" for="mbeats" data-i18n="h.olcu">Ölçü</label><select id="mbeats"></select></div>
       <label class="chk" data-i18n="h.i-lk-vurus" data-i18n-mode="last"><input type="checkbox" id="maccent"> İlk vuruş vurgulu</label>
+    </div>
+    <div class="mfoot">
+      <div class="mdots" id="mdots" aria-hidden="true"></div>
       <button type="button" class="stopbtn" id="mtap" data-i18n="h.mtap">Dokunarak tempo</button>
       <button type="button" class="primary small" id="mrun">Başlat</button>
     </div>
-    <div class="mdots" id="mdots" aria-hidden="true"></div>
   </div>
 
-  <div class="settings" id="settings">
-    <div class="field">
-      <label class="label" for="instrument" data-i18n="h.calgi">Çalgı</label>
-      <select id="instrument"></select>
+  <main class="content" id="content">
+  <div class="lessonbar" id="lessonbar" role="region" aria-labelledby="lbtitle" hidden>
+    <div class="lbtext">
+      <div class="lbkicker" id="lbkicker"></div>
+      <div class="lbtitle" id="lbtitle"></div>
+      <div class="lbgoal" id="lbgoal"></div>
     </div>
-    <div class="field">
-      <label class="label" for="tuning" data-i18n="h.akort">Akort</label>
-      <select id="tuning"></select>
-    </div>
-    <div class="field">
-      <label class="label" for="a4" data-i18n="h.diyapazon-la">Diyapazon (La)</label>
-      <span class="stepper">
-        <button type="button" class="mini" id="a4dn" aria-label="Diyapazonu yarım Hz düşür" data-i18n-attr="aria-label:h.a4dn-label">−</button>
-        <input id="a4" type="number" min="430" max="450" step="0.5" value="440" inputmode="decimal">
-        <button type="button" class="mini" id="a4up" aria-label="Diyapazonu yarım Hz yükselt" data-i18n-attr="aria-label:h.a4up-label">+</button>
-        <em>Hz</em>
-      </span>
-    </div>
-    <div class="field">
-      <label class="label" for="sens" data-i18n="h.hassasiyet">Hassasiyet</label>
-      <input type="range" id="sens" min="1" max="10" step="1" value="5">
-    </div>
-    <div class="field grow">
-      <span class="label" data-i18n="h.mikrofon-seviyesi">Mikrofon seviyesi</span>
-      <div class="level" title="Turuncu çizgi sessizlik eşiği: çubuk bu çizgiyi geçince dinlenir" data-i18n-attr="title:h.turuncu-cizgi-sessizlik">
-        <div class="lvbar" id="lvbar"></div><div class="lvthr" id="lvthr"></div>
-      </div>
-    </div>
+    <div class="lbacts" id="lbacts"></div>
   </div>
-
-  <nav class="tabs" id="tabs" role="tablist" aria-label="Bölümler" data-i18n-attr="aria-label:h.tabs-label">
-    <button type="button" role="tab" id="tab-dersler"  aria-controls="panel-dersler" data-i18n="h.tab-dersler">Dersler</button>
-    <button type="button" role="tab" id="tab-akort"    aria-controls="panel-akort" data-i18n="h.tab-akort">Akort</button>
-    <button type="button" role="tab" id="tab-sap"      aria-controls="panel-sap" data-i18n="h.tab-sap">Sap ve notalar</button>
-    <button type="button" role="tab" id="tab-akorlar"  aria-controls="panel-akorlar" data-i18n="h.tab-akorlar">Akorlar</button>
-    <button type="button" role="tab" id="tab-ritim"    aria-controls="panel-ritim" data-i18n="h.tab-ritim">Ritim</button>
-    <button type="button" role="tab" id="tab-sarkilar" aria-controls="panel-sarkilar" data-i18n="h.tab-sarkilar">Şarkılar</button>
-    <button type="button" role="tab" id="tab-ezgiler"  aria-controls="panel-ezgiler" data-i18n="h.tab-ezgiler">Ezgiler</button>
-    <button type="button" role="tab" id="tab-kulak"    aria-controls="panel-kulak" data-i18n="h.tab-kulak">Kulak</button>
-  </nav>
 
   <!-- ===== Dersler ===== -->
   <section class="panel" id="panel-dersler" role="tabpanel" aria-labelledby="tab-dersler" hidden>
+    <div class="card welcome" id="welcome" hidden>
+      <p class="lede" data-i18n="h.gitari-akort-et">Gitarı akort et, sapta notaları, akorları ve ritimleri öğren; şarkı ve ezgi çal, kulağını eğit. Mikrofonla seni dinler ve doğru mu çaldığını söyler. Yeni başlıyorsan Dersler sekmesindeki sırayı izle.</p>
+      <button type="button" class="primary small" id="welcomeok" data-i18n="h.anladim">Anladım</button>
+    </div>
     <div class="card">
       <div class="striphead">
         <div class="label" data-i18n="h.baslangic-kursu">Başlangıç kursu</div>
         <span class="reg" id="lcount"></span>
       </div>
       <div class="lprog" aria-hidden="true"><i id="lbar"></i></div>
-      <p class="lead" data-i18n="h.dersler-sirayla-acilir">Dersler sırayla açılır. “Başla” seni ilgili sekmeye götürür ve alıştırmayı hazırlar; hedefe ulaşınca (mikrofonla kontrol edilir) ders kendiliğinden tamamlanır. Bildiğin bir dersi “Atla” ile geçebilirsin.</p>
+      <details class="help"><summary data-i18n="h.nasil-calisir">Nasıl çalışır?</summary>
+      <p class="lead" data-i18n="h.dersler-sirayla-acilir">Dersler sırayla açılır. “Başla” seni ilgili sekmeye götürür ve alıştırmayı hazırlar; hedefe ulaşınca (mikrofonla kontrol edilir) ders kendiliğinden tamamlanır. Bildiğin bir dersi “Atla” ile geçebilirsin.</p></details>
       <ol class="llist" id="llist"></ol>
       <div class="cbtns" style="margin-top:14px"><button type="button" class="stopbtn" id="lreset" data-i18n="h.lreset">İlerlemeyi sıfırla</button></div>
     </div>
@@ -120,7 +142,8 @@
         <div class="label" data-i18n="h.akort-2">Akort</div>
         <span class="reg" id="tuningname"></span>
       </div>
-      <p class="lead" data-i18n="h.bir-teli-cal">Bir teli çal; hangi tel olduğunu kendisi bulur. İbre ortadaysa tel akortludur. Ses pesse burguyu sık, tizse gevşet; her tel ✓ olunca bitti. Bir tele dokunursan yalnız o tel dinlenir ve referans sesi çalınabilir.</p>
+      <details class="help"><summary data-i18n="h.nasil-calisir">Nasıl çalışır?</summary>
+      <p class="lead" data-i18n="h.bir-teli-cal">Bir teli çal; hangi tel olduğunu kendisi bulur. İbre ortadaysa tel akortludur. Ses pesse burguyu sık, tizse gevşet; her tel ✓ olunca bitti. Bir tele dokunursan yalnız o tel dinlenir ve referans sesi çalınabilir.</p></details>
       <div class="row">
         <label class="chk" data-i18n="h.teli-kendisi-bulsun" data-i18n-mode="last"><input type="checkbox" id="tauto" checked> Teli kendisi bulsun</label>
         <button type="button" class="stopbtn" id="tref" data-i18n="h.tref">Referans sesi çal</button>
@@ -143,7 +166,7 @@
   <section class="panel" id="panel-sap" role="tabpanel" aria-labelledby="tab-sap" hidden>
     <div class="grid">
       <section class="card" aria-labelledby="perdelab">
-        <div class="label" id="perdelab" data-i18n="h.perdelab">Çalınan nota (yazılı)</div>
+        <div class="label" id="perdelab" data-i18n="h.perdelab">Çalınan nota</div>
         <div class="perde resting" id="perde">Sol4</div>
         <div class="koma" id="koma">duyulan Sol3</div>
         <div class="sr" aria-live="polite" id="announce"></div>
@@ -153,6 +176,8 @@
           <div class="centnow" id="centtxt">tampere notadan sapma: 0 sent</div>
         </div>
 
+        <details class="more" id="sapmore">
+        <summary data-i18n="h.ayrintilar">Ayrıntılar: frekans, sapma, ses izi</summary>
         <div class="data">
           <div>
             <div class="label" data-i18n="h.yazili-nota">Yazılı nota</div>
@@ -175,6 +200,7 @@
           </div>
           <canvas class="trace" id="trace" role="img" aria-label="Son 8 saniyede çalınan sesin perde grafiği" data-i18n-attr="aria-label:h.trace-label"></canvas>
         </div>
+        </details>
       </section>
 
       <aside class="card" aria-labelledby="fingerlab">
@@ -245,45 +271,58 @@
             <button type="button" class="primary small" id="cstrum" data-i18n="h.cstrum">Tümünü çal</button>
             <button type="button" class="stopbtn" id="carp" data-i18n="h.carp">Tel tel çal</button>
           </div>
-          <ol class="steps csteps" id="csteps"></ol>
-          <div class="ctip" id="ctip"></div>
-          <div class="ccheck">
-            <span class="label" id="chklab" data-i18n="h.chklab">Mikrofonla kontrol</span>
-            <div class="seg" role="radiogroup" aria-labelledby="chklab" id="chkseg">
-              <button type="button" role="radio" data-chk="off" aria-checked="true" data-i18n="h.kapali">Kapalı</button>
-              <button type="button" role="radio" data-chk="strings" aria-checked="false" data-i18n="h.tel-tel">Tel tel</button>
-              <button type="button" role="radio" data-chk="strum" aria-checked="false" data-i18n="h.tumu-deneysel">Tümü (deneysel)</button>
+          <div class="seg subtabs" role="tablist" id="csub" aria-label="Akor bölümleri" data-i18n-attr="aria-label:h.csub-label">
+            <button type="button" role="tab" id="csub-learn" aria-controls="cpane-learn" aria-selected="true" data-i18n="h.ogren">Öğren</button>
+            <button type="button" role="tab" id="csub-check" aria-controls="cpane-check" aria-selected="false" data-i18n="h.kontrol-et">Kontrol et</button>
+            <button type="button" role="tab" id="csub-practice" aria-controls="cpane-practice" aria-selected="false" data-i18n="h.alistirma">Alıştırma</button>
+          </div>
+          <div class="cpane" id="cpane-learn" role="tabpanel" aria-labelledby="csub-learn">
+            <ol class="steps csteps" id="csteps"></ol>
+            <div class="ctip" id="ctip"></div>
+          </div>
+          <div class="cpane" id="cpane-check" role="tabpanel" aria-labelledby="csub-check" hidden>
+            <div class="ccheck">
+              <span class="label" id="chklab" data-i18n="h.chklab">Mikrofonla kontrol</span>
+              <div class="seg" role="radiogroup" aria-labelledby="chklab" id="chkseg">
+                <button type="button" role="radio" data-chk="off" aria-checked="true" data-i18n="h.kapali">Kapalı</button>
+                <button type="button" role="radio" data-chk="strings" aria-checked="false" data-i18n="h.tel-tel">Tel tel</button>
+                <button type="button" role="radio" data-chk="strum" aria-checked="false" data-i18n="h.tumu-deneysel">Tüm akor (beta)</button>
+              </div>
+              <details class="help"><summary data-i18n="h.nasil-calisir">Nasıl çalışır?</summary>
+              <p class="lead" data-i18n="h.cresult">Tel tel: telleri kalından inceye birer birer çal, her telin doğru ve temiz çıkıp çıkmadığını söylerim. Tüm akor: akoru bir kerede çal, hangi akor seslerinin duyulduğunu gösteririm.</p></details>
+              <div class="cresult" id="cresult" aria-live="polite"></div>
             </div>
-            <div class="cresult" id="cresult" aria-live="polite" data-i18n="h.cresult">Tel tel: telleri kalından inceye birer birer çal, her telin doğru ve temiz çıkıp çıkmadığını söylerim. Tümü: akoru bir kerede çal, hangi akor seslerinin duyulduğunu gösteririm.</div>
+          </div>
+          <div class="cpane" id="cpane-practice" role="tabpanel" aria-labelledby="csub-practice" hidden>
+            <div class="change" id="change">
+              <div class="striphead">
+                <div class="label" data-i18n="h.akor-degistirme-alistirmasi">Akor değiştirme alıştırması</div>
+                <span class="reg" data-i18n="h.1-dakika-iki">1 dakika · iki akor arasında temiz geçişleri sayar</span>
+              </div>
+              <div class="row">
+                <div class="field"><label class="label" for="cha" data-i18n="h.akor-1">Akor 1</label><select id="cha"></select></div>
+                <div class="field"><label class="label" for="chb" data-i18n="h.akor-2">Akor 2</label><select id="chb"></select></div>
+                <button type="button" class="primary small" id="chstart">Başlat</button>
+              </div>
+              <div class="chstat">
+                <div><div class="label" data-i18n="h.gecis">Geçiş</div><div class="big chcount" id="chcount">0</div></div>
+                <div><div class="label" data-i18n="h.kalan">Kalan</div><div class="v" id="chtime">60 s</div></div>
+                <div><div class="label" data-i18n="h.simdi-duyulan">Şimdi duyulan</div><div class="v" id="chnow">—</div></div>
+                <div><div class="label" data-i18n="h.en-iyi">En iyi</div><div class="v" id="chbest">—</div></div>
+              </div>
+              <details class="help"><summary data-i18n="h.nasil-calisir">Nasıl çalışır?</summary>
+              <p class="lead" data-i18n="h.chmsg">İki akoru sırayla çal: her akoru bir kez vur, hemen diğerine geç. Her temiz geçiş bir sayılır. Akorlar mikrofonla “Tüm akor” kontrolündeki yöntemle tanınır.</p></details>
+              <div class="cresult" id="chmsg" aria-live="polite"></div>
+            </div>
+            <div class="prog">
+              <div class="striphead">
+                <div class="label" data-i18n="h.sik-akor-dizilisleri">Sık akor dizilişleri</div>
+                <span class="reg" data-i18n="h.tikla-her-akor">tıkla: her akor 2 saniye, sürekli döner · tekrar tıkla: dur</span>
+              </div>
+              <div class="progs" id="progs"></div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="change" id="change">
-        <div class="striphead">
-          <div class="label" data-i18n="h.akor-degistirme-alistirmasi">Akor değiştirme alıştırması</div>
-          <span class="reg" data-i18n="h.1-dakika-iki">1 dakika · iki akor arasında temiz geçişleri sayar</span>
-        </div>
-        <div class="row">
-          <div class="field"><label class="label" for="cha" data-i18n="h.akor-1">Akor 1</label><select id="cha"></select></div>
-          <div class="field"><label class="label" for="chb" data-i18n="h.akor-2">Akor 2</label><select id="chb"></select></div>
-          <button type="button" class="primary small" id="chstart">Başlat</button>
-        </div>
-        <div class="chstat">
-          <div><div class="label" data-i18n="h.gecis">Geçiş</div><div class="big chcount" id="chcount">0</div></div>
-          <div><div class="label" data-i18n="h.kalan">Kalan</div><div class="v" id="chtime">60 s</div></div>
-          <div><div class="label" data-i18n="h.simdi-duyulan">Şimdi duyulan</div><div class="v" id="chnow">—</div></div>
-          <div><div class="label" data-i18n="h.en-iyi">En iyi</div><div class="v" id="chbest">—</div></div>
-        </div>
-        <div class="cresult" id="chmsg" aria-live="polite" data-i18n="h.chmsg">İki akoru sırayla çal: her akoru bir kez vur, hemen diğerine geç. Her temiz geçiş bir sayılır. Akorlar mikrofonla “Tümü” kontrolündeki yöntemle tanınır.</div>
-      </div>
-
-      <div class="prog">
-        <div class="striphead">
-          <div class="label" data-i18n="h.sik-akor-dizilisleri">Sık akor dizilişleri</div>
-          <span class="reg" data-i18n="h.tikla-her-akor">tıkla: her akor 2 saniye, sürekli döner · tekrar tıkla: dur</span>
-        </div>
-        <div class="progs" id="progs"></div>
       </div>
     </section>
   </section>
@@ -318,11 +357,12 @@
       </div>
       <div class="cbtns">
         <button type="button" class="primary small" id="rdemo" data-i18n="h.rdemo">Dinle</button>
-        <button type="button" class="stopbtn" id="rplay" data-i18n="h.rplay">Birlikte çal · mikrofonla</button>
-        <button type="button" class="stopbtn" id="rcal" data-i18n="h.rcal">Gecikmeyi ölç</button>
+        <button type="button" class="stopbtn" id="rplay"><svg class="ico" aria-hidden="true"><use href="#i-mic"/></svg><span data-i18n="h.rplay">Birlikte çal</span></button>
         <button type="button" class="stopbtn" id="rstop" disabled data-i18n="h.rstop">Durdur</button>
       </div>
-      <div class="cresult" id="rresult" aria-live="polite" data-i18n="h.rresult">Dinle: kalıbı seçili akorla çalar. Birlikte çal: bir ölçü sayar, sonra sen çalarsın; her vuruşun zamanında mı, erken mi, geç mi olduğunu gösteririm (mikrofon aşağı/yukarı yönü ayırt edemez, yalnızca zamanlamayı ölçer). İlk kez kullanmadan önce “Gecikmeyi ölç”e bas: telefonun ya da bilgisayarın ses gecikmesi düşülsün.</div>
+      <details class="help"><summary data-i18n="h.nasil-calisir">Nasıl çalışır?</summary>
+      <p class="lead" data-i18n="h.rresult">Dinle: kalıbı seçili akorla çalar. Birlikte çal: bir ölçü sayar, sonra sen çalarsın; her vuruşun zamanında mı, erken mi, geç mi olduğunu gösteririm (mikrofon aşağı/yukarı yönü ayırt edemez, yalnızca zamanlamayı ölçer). İlk kez kullanmadan önce Ayarlar’dan “Gecikmeyi ölç”: telefonun ya da bilgisayarın ses gecikmesi düşülsün.</p></details>
+      <div class="cresult" id="rresult" aria-live="polite"></div>
     </section>
   </section>
 
@@ -343,14 +383,18 @@
       <div class="label" data-i18n="h.bu-sarkidaki-akorlar">Bu şarkıdaki akorlar</div>
       <div class="minis" id="songchords"></div>
       <div class="sheet" id="songsheet" aria-live="off"></div>
-      <div class="rnow" id="songnow" aria-live="polite"></div>
-      <div class="cbtns">
-        <button type="button" class="primary small" id="songdemo" data-i18n="h.songdemo">Dinle</button>
-        <button type="button" class="stopbtn" id="songplay" data-i18n="h.songplay">Birlikte çal · mikrofonla</button>
-        <button type="button" class="stopbtn" id="songstop" disabled data-i18n="h.songstop">Durdur</button>
-        <button type="button" class="stopbtn" id="songlyrbtn" data-i18n="h.songlyrbtn">Sözleri kendin ekle</button>
+      <div class="player" id="songplayer">
+        <div class="rnow" id="songnow" aria-live="polite"></div>
+        <div class="cbtns">
+          <button type="button" class="primary small" id="songdemo" data-i18n="h.songdemo">Dinle</button>
+          <button type="button" class="stopbtn" id="songplay"><svg class="ico" aria-hidden="true"><use href="#i-mic"/></svg><span data-i18n="h.songplay">Birlikte çal</span></button>
+          <button type="button" class="stopbtn" id="songstop" disabled data-i18n="h.songstop">Durdur</button>
+        </div>
       </div>
-      <div class="cresult" id="songres" aria-live="polite" data-i18n="h.songres">Dinle: şarkıyı seçili vuruşla çalar, çalan akor sözlerin üstünde yanar. Birlikte çal: bir ölçü sayar, sonra sen çalarsın; sonunda vuruşlarının yüzde kaçının zamanında olduğunu söylerim. Capo Akorlar sekmesinden ayarlanır.</div>
+      <div class="cbtns"><button type="button" class="stopbtn" id="songlyrbtn" data-i18n="h.songlyrbtn">Sözleri kendin ekle</button></div>
+      <div class="cresult" id="songres" aria-live="polite"></div>
+      <details class="help"><summary data-i18n="h.nasil-calisir">Nasıl çalışır?</summary>
+      <p class="lead" data-i18n="h.songres">Dinle: şarkıyı seçili vuruşla çalar, çalan akor sözlerin üstünde yanar. Birlikte çal: bir ölçü sayar, sonra sen çalarsın; sonunda vuruşlarının yüzde kaçının zamanında olduğunu söylerim. Capo Akorlar sekmesinden ayarlanır.</p></details>
       <details class="editor" id="songeditor">
         <summary data-i18n="h.kendi-sarkini-yaz">Kendi şarkını yaz</summary>
         <p class="lead" data-i18n="h.akorlari-koseli-parantez" data-i18n-mode="html">Akorları köşeli parantez içinde sözün önüne yaz: <code>[Am]Uzun ince [F]bir yoldayım</code>. Bir akor iki ölçü sürecekse <code>[G*2]</code>. Klavyeden <code>F#m</code>, <code>Bb</code> yazabilirsin. Yalnızca Akorlar sekmesindeki akorlar tanınır.</p>
@@ -389,11 +433,13 @@
       <div class="mnext" id="melnext" aria-live="polite"></div>
       <div class="mnotes" id="melnotes"></div>
       <div class="cbtns">
-        <button type="button" class="primary small" id="melplay" data-i18n="h.melplay">Çal · mikrofonla</button>
+        <button type="button" class="primary small" id="melplay"><svg class="ico" aria-hidden="true"><use href="#i-mic"/></svg><span data-i18n="h.melplay">Sen çal</span></button>
         <button type="button" class="stopbtn" id="meldemo" data-i18n="h.meldemo">Dinle</button>
         <button type="button" class="stopbtn" id="melstop" disabled data-i18n="h.melstop">Durdur</button>
       </div>
-      <div class="cresult" id="melres" aria-live="polite" data-i18n="h.melres">Çal: notaları sırayla çal; doğru notayı duyunca sıradakine geçerim, yanlışsa ne duyduğumu söylerim. Tempo yok, acele etme. Her kartta notanın adı, tel ve perde (tel · perde) ve parmak var.</div>
+      <div class="cresult" id="melres" aria-live="polite"></div>
+      <details class="help"><summary data-i18n="h.nasil-calisir">Nasıl çalışır?</summary>
+      <p class="lead" data-i18n="h.melres">Sen çal: notaları sırayla çal; doğru notayı duyunca sıradakine geçerim, yanlışsa ne duyduğumu söylerim. Tempo yok, acele etme. Her kartta notanın adı, tel ve perde (tel · perde) ve parmak var.</p></details>
       <details class="code">
         <summary data-i18n="h.tab-olarak">Tab olarak</summary>
         <pre class="fcode" id="meltab">—</pre>
@@ -427,15 +473,98 @@
     </section>
   </section>
 
-  <footer data-i18n="h.calgi-secimi-sapin" data-i18n-mode="html">
+  </main>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="modal" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgtitle" aria-describedby="dlgbody" hidden>
+  <div class="dlgicon" id="dlgicon" aria-hidden="true"></div>
+  <h2 id="dlgtitle"></h2>
+  <div class="dlgbody" id="dlgbody"></div>
+  <div class="dlgacts" id="dlgacts"></div>
+</div>
+
+<div class="drawer" id="settings" role="dialog" aria-modal="true" aria-labelledby="settitle" hidden>
+  <div class="drawerhead">
+    <h2 id="settitle" data-i18n="h.ayarlar">Ayarlar</h2>
+    <button type="button" class="iconbtn" id="setclose" aria-label="Kapat" data-i18n-attr="aria-label:h.kapat"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
+  </div>
+
+  <section class="setgroup">
+    <h3 class="label" data-i18n="h.gitar">Gitar</h3>
+    <div class="field">
+      <label class="label" for="instrument" data-i18n="h.calgi">Çalgı</label>
+      <select id="instrument"></select>
+    </div>
+    <div class="field">
+      <label class="label" for="tuning" data-i18n="h.akort">Akort</label>
+      <select id="tuning"></select>
+    </div>
+    <div class="field">
+      <label class="label" for="a4" data-i18n="h.diyapazon-la">Diyapazon (La)</label>
+      <span class="stepper">
+        <button type="button" class="mini" id="a4dn" aria-label="Diyapazonu yarım Hz düşür" data-i18n-attr="aria-label:h.a4dn-label">−</button>
+        <input id="a4" type="number" min="430" max="450" step="0.5" value="440" inputmode="decimal">
+        <button type="button" class="mini" id="a4up" aria-label="Diyapazonu yarım Hz yükselt" data-i18n-attr="aria-label:h.a4up-label">+</button>
+        <em>Hz</em>
+      </span>
+    </div>
+  </section>
+
+  <section class="setgroup">
+    <h3 class="label" data-i18n="h.mikrofon">Mikrofon</h3>
+    <div class="field">
+      <label class="label" for="sens" data-i18n="h.hassasiyet">Hassasiyet</label>
+      <input type="range" id="sens" min="1" max="10" step="1" value="5">
+    </div>
+    <div class="field">
+      <span class="label" data-i18n="h.mikrofon-seviyesi">Mikrofon seviyesi</span>
+      <div class="level" title="Turuncu çizgi sessizlik eşiği: çubuk bu çizgiyi geçince dinlenir" data-i18n-attr="title:h.turuncu-cizgi-sessizlik">
+        <div class="lvbar" id="lvbar"></div><div class="lvthr" id="lvthr"></div>
+      </div>
+    </div>
+    <div class="field">
+      <span class="label" data-i18n="h.gecikme">Ses gecikmesi</span>
+      <p class="lead" data-i18n="h.gecikme-aciklama">Birlikte çalarken zamanlamanın doğru ölçülmesi için bir kez ölç. Kulaklık ya da hoparlör değişirse yeniden ölç.</p>
+      <div class="row"><button type="button" class="stopbtn" id="rcal" data-i18n="h.rcal">Gecikmeyi ölç</button><span class="reg" id="latstat"></span></div>
+      <div class="rnow" id="calnow" aria-live="polite"></div>
+      <div class="cresult" id="calmsg" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="setgroup">
+    <h3 class="label" data-i18n="h.gorunum">Görünüm</h3>
+    <div class="field">
+      <span class="label" id="themelab" data-i18n="h.tema">Tema</span>
+      <div class="seg" role="radiogroup" aria-labelledby="themelab" id="themeseg">
+        <button type="button" role="radio" data-theme="auto" aria-checked="true" data-i18n="h.otomatik">Otomatik</button>
+        <button type="button" role="radio" data-theme="light" aria-checked="false" data-i18n="h.acik">Açık</button>
+        <button type="button" role="radio" data-theme="dark" aria-checked="false" data-i18n="h.koyu">Koyu</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="label" id="langlab" data-i18n="h.dil">Dil</span>
+      <div class="seg" role="radiogroup" aria-labelledby="langlab" id="langseg">
+        <button type="button" role="radio" data-lang="tr" lang="tr" aria-checked="true">Türkçe</button>
+        <button type="button" role="radio" data-lang="en" lang="en" aria-checked="false">English</button>
+      </div>
+    </div>
+    <label class="chk" id="vibrow" data-i18n="h.titresim" data-i18n-mode="last"><input type="checkbox" id="vibrate"> Titreşim</label>
+  </section>
+
+  <section class="setgroup about">
+    <h3 class="label" data-i18n="h.hakkinda">Hakkında</h3>
+  <p class="abouttext" data-i18n="h.calgi-secimi-sapin" data-i18n-mode="html">
     Çalgı seçimi sapın perde sayısını (klasik 19, akustik 20, elektro 22 ya da 24; tipik değerler) ve örnek sesin tınısını
     değiştirir. Elektro gitar amfisiz çok kısık duyulur: mikrofonu amfinin hoparlörüne yakın tut ya da gitarı bir ses kartına
     bağlayıp tarayıcının mikrofon izninde o girişi seç. Ses cihazında işlenir, hiçbir yere gönderilmez
     (<a href="privacy.html">gizlilik</a>).
     Kaynaklar ve ayrıntılar için <a href="https://github.com/alikrc/GuitarNoteDetectionApp" target="_blank" rel="noopener">depodaki README</a>.
-  </footer>
+  </p>
+  </section>
 </div>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="js/core/i18n.js"></script>

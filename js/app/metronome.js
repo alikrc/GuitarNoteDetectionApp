@@ -57,7 +57,7 @@ const Metronome = (() => {
     if(!run) return;
     clearInterval(run.timer); cancelAnimationFrame(run.raf); run = null;
     runBtn.textContent = t("metro.start"); runBtn.classList.remove("listening");
-    toggle.classList.remove("on");
+    toggle.classList.remove("on", "beat");
     [...dotsEl.children].forEach(d => d.classList.remove("now"));
   }
   function restart(){ stop(); start(); }
@@ -74,17 +74,20 @@ const Metronome = (() => {
     run.raf = requestAnimationFrame(frame);
     const a = Snd.ctx(), k = Math.floor((a.currentTime - (a.outputLatency || 0) - run.t0) / (60 / bpm));
     [...dotsEl.children].forEach((d, i) => d.classList.toggle("now", k >= 0 && i === k % beats));
+    toggle.classList.toggle("beat", k >= 0 && (a.currentTime - (a.outputLatency || 0) - run.t0) % (60 / bpm) < 0.1);
   }
   runBtn.addEventListener("click", () => run ? stop() : start());
-  toggle.addEventListener("click", () => {
-    panel.hidden = !panel.hidden;
-    toggle.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
-    store.set("mOpen", !panel.hidden);
-  });
+  // Panel üst çubuktaki düğmeyle açılıp kapanır; kapatınca metronom çalmaya devam eder (düğme vuruşta yanıp söner)
+  function setOpen(open){
+    panel.hidden = !open;
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    store.set("mOpen", open);
+  }
+  toggle.addEventListener("click", () => setOpen(panel.hidden));
+  $("mclose").addEventListener("click", () => { setOpen(false); toggle.focus(); });
   Bus.on("stopall", ev => { if(ev && ev.all && ev.keep !== "metronome") stop(); });
 
-  panel.hidden = !store.get("mOpen", false);
-  toggle.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
+  setOpen(store.get("mOpen", false));
   bpmIn.value = bpm; bpmVal.textContent = bpm; drawDots();
   runBtn.textContent = t("metro.start");
   return { start, stop, get running(){ return !!run; } };

@@ -76,7 +76,7 @@ const tick = (ms = 0) => new Promise(r => setTimeout(r, ms));
 
   console.log('\n[UI 1] Yükleme ve sekmeler');
   ok(errors.length === 0, 'sayfa betik hatası olmadan yükleniyor', errors.slice(0, 3).join(' | '));
-  const tabs = [...doc.querySelectorAll('[role=tab]')];
+  const tabs = [...doc.querySelectorAll('#tabs [role=tab]')];
   ok(tabs.length === 8 && visible().join() === 'panel-dersler', 'ilk açılışta yalnız Dersler paneli görünür', visible().join());
   let tabErr = [];
   for(const t of tabs){
@@ -87,12 +87,53 @@ const tick = (ms = 0) => new Promise(r => setTimeout(r, ms));
   ok(tabErr.length === 0, 'her sekme kendi panelini açıyor, diğerleri gizleniyor', tabErr.join(','));
   ok(win.location.hash === '#kulak' && JSON.parse(win.localStorage.getItem('gt.tab')) === 'kulak', 'açık sekme adrese ve hafızaya yazılıyor');
 
+  ok($('viewtitle').textContent === 'Kulak' && $('morebtn').classList.contains('active'), 'başlık açık sekmeyi gösteriyor, "Daha" sekmesi seçiliyken Daha düğmesi vurgulu');
+  click($('morebtn'));
+  ok($('nav').classList.contains('open') && !$('scrim').hidden && $('morebtn').getAttribute('aria-expanded') === 'true', 'Daha menüsü açılıyor, arka plan karartılıyor');
+  click($('scrim'));
+  ok(!$('nav').classList.contains('open') && $('scrim').hidden, 'karartmaya dokununca Daha menüsü kapanıyor');
+  click($('morebtn')); click($('tab-ritim'));
+  ok(!$('nav').classList.contains('open') && visible().join() === 'panel-ritim', 'Daha menüsünden sekme seçilince menü kapanıyor');
+  click($('setbtn'));
+  ok(!$('settings').hidden && $('app').inert === true && !$('scrim').hidden, 'ayarlar paneli açılıyor, arkası etkisiz');
+  win.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape' }));
+  ok($('settings').hidden && !$('app').inert && $('scrim').hidden, 'Esc ayarlar panelini kapatıyor');
+  ok(!$('welcome').hidden, 'ilk açılışta tanıtım kartı görünüyor');
+  click($('welcomeok'));
+  ok($('welcome').hidden && JSON.parse(win.localStorage.getItem('gt.welcomed')) === true, '"Anladım" tanıtımı kapatıp hatırlıyor');
+  click($('brand'));
+  ok(visible().join() === 'panel-dersler', 'logoya basınca Dersler (ana sayfa) açılıyor');
+
   console.log('\n[UI 2] Dersler');
   ok(doc.querySelectorAll('#llist .lesson').length === 16 && doc.querySelector('#llist .lesson').classList.contains('open'), '16 ders, ilki açık');
   click(doc.querySelector('#llist .lesson .stopbtn'));          // Atla
   ok(doc.querySelectorAll('#llist .lesson.done').length === 1 && $('lcount').textContent.startsWith('1 /'), 'Atla dersi tamamlıyor, ilerleme güncelleniyor');
   g('Bus').emit('achieve', { type: 'chordClean', chord: 'Em' });
   ok(doc.querySelectorAll('#llist .lesson.done').length === 2, 'başarı olayı açık dersi tamamlıyor (Em)');
+  click(doc.querySelector('#llist .lesson.open .primary'));        // Başla: Am dersi
+  ok(visible().join() === 'panel-akorlar' && !$('lessonbar').hidden && $('lbtitle').textContent === 'Am akoru' && !$('cpane-check').hidden,
+     'Başla akor sekmesini Kontrol et bölümünde açıyor, hedef şeritte', $('lbtitle').textContent);
+  g('Bus').emit('achieve', { type: 'chordClean', chord: 'Am' });
+  ok($('lessonbar').classList.contains('done') && $('lbgoal').textContent.includes('Dörtlük vuruş'), 'ders bitince şeritte tebrik ve sıradaki ders', $('lbgoal').textContent);
+  click($('lbacts').querySelector('.primary'));
+  ok(visible().join() === 'panel-ritim' && $('lbtitle').textContent === 'Dörtlük vuruş' && !$('lessonbar').classList.contains('done'),
+     '"Sıradaki derse geç" yeni dersi ilgili sekmede başlatıyor');
+  click($('tab-kulak'));
+  ok($('lessonbar').hidden, 'şerit yalnızca dersin sekmesinde görünüyor');
+  click($('tab-ritim')); click($('lbacts').querySelector('.lbclose'));
+  ok($('lessonbar').hidden && JSON.parse(win.localStorage.getItem('gt.activeLesson')) === null, 'şerit kapatılabiliyor');
+  click($('tab-dersler'));
+
+  console.log('\n[UI 2b] Diyalog, akor bölümleri, ayrıntılar');
+  const dp = g('Dialog').show({ title: 'Deneme', html: 'metin', actions: [{ label: 'Hayır', value: false }, { label: 'Evet', value: true, primary: true }] });
+  ok(!$('dlg').hidden && $('app').inert === true && doc.activeElement === $('dlgacts').querySelector('.primary'), 'diyalog açılıyor, odak birincil düğmede');
+  click($('dlgacts').querySelector('.primary'));
+  ok(await dp === true && $('dlg').hidden && !$('app').inert, 'diyalog seçilen değerle kapanıyor');
+  click($('csub-practice'));
+  ok(!$('cpane-practice').hidden && $('cpane-learn').hidden && $('cpane-check').hidden, 'Alıştırma bölümü açılıyor, diğerleri gizleniyor');
+  click($('csub-learn'));
+  ok($('settings').contains($('rcal')) && !$('panel-ritim').contains($('rcal')), 'gecikme ölçümü Ayarlar panelinde');
+  ok($('sapmore').tagName === 'DETAILS' && !$('sapmore').open && $('sapmore').contains($('hz')), 'sapta frekans ve sapma "Ayrıntılar" altında');
 
   console.log('\n[UI 3] Akort');
   ok($('tstrings').children.length === 6 && $('tstrings').textContent.includes('Mi2'), 'altı tel düğmesi, 6. tel Mi2');
@@ -178,8 +219,10 @@ const tick = (ms = 0) => new Promise(r => setTimeout(r, ms));
   const attrMism = [...raw.querySelectorAll('[data-i18n-attr]')].flatMap(el => el.dataset.i18nAttr.split(';').map(p => [el, ...p.split(':')]))
     .filter(([el, a, k]) => !STRS[k] || norm(el.getAttribute(a)) !== norm(STRS[k].tr)).map(([, , k]) => k);
   ok(mism.length === 0 && attrMism.length === 0, 'HTML\'deki Türkçe metinler sözlükle birebir aynı', [...mism, ...attrMism].join(','));
-  click3($3('langbtn'));
-  ok(D.documentElement.lang === 'en' && $3('tab-dersler').textContent === 'Lessons' && $3('langbtn').textContent === 'Türkçe' &&
+  const langBtn = l => D.querySelector('#langseg [data-lang=' + l + ']');
+  click3(langBtn('en'));
+  ok(D.documentElement.lang === 'en' && $3('tab-dersler').textContent === 'Lessons' && langBtn('en').getAttribute('aria-checked') === 'true' &&
+     $3('viewtitle').textContent === 'Lessons' && $3('setbtn').textContent.includes('Settings') &&
      JSON.parse(W.localStorage.getItem('gt.lang')) === 'en', 'dil düğmesi İngilizceye geçiriyor ve saklıyor');
   ok(D.querySelector('#llist .lesson h3').textContent === 'Tune your guitar' && $3('cname').textContent.startsWith('A minor') &&
      $3('tstrings').textContent.includes('E2') && $3('perde').textContent === 'G4', 'dersler, akor adı ve nota adları İngilizce (C D E)',
@@ -188,29 +231,33 @@ const tick = (ms = 0) => new Promise(r => setTimeout(r, ms));
   const NAMES = [...G('SONGS').flatMap(x => [x.title, x.artist || '']), 'Türk aksağı', 'Türkçe', 'Müfit Erdağ', 'Mor ve Ötesi', 'Barış Manço', 'Yüksek Sadakat', 'MFÖ', 'Kâtibim', 'düm']
     .filter(Boolean).sort((a, b) => b.length - a.length);
   const leftovers = [];
-  for(const tb of [...D.querySelectorAll('[role=tab]')]){
+  for(const tb of [...D.querySelectorAll('#tabs [role=tab]')]){
     click3(tb);
-    let txt = D.querySelector('.page').textContent;
+    let txt = D.body.textContent;
     for(const n of NAMES) txt = txt.split(n).join('');
     const m = txt.match(/[^\s]*[çğışöüÇĞİŞÖÜ][^\s]*/g);
     if(m) leftovers.push(tb.id + ': ' + [...new Set(m)].slice(0, 8).join(' '));
   }
   ok(leftovers.length === 0, 'İngilizcede hiçbir sekmede Türkçe metin kalmıyor', leftovers.join(' | '));
+  ok($3('langbtn').textContent === 'TR', 'üst çubuktaki dil düğmesi öbür dili gösteriyor');
   click3($3('langbtn'));
   ok(D.documentElement.lang === 'tr' && $3('tab-dersler').textContent === 'Dersler' && D.querySelector('#llist .lesson h3').textContent === 'Gitarı akort et',
      'Türkçeye geri dönüyor');
-  ok(D.documentElement.dataset.theme === undefined && $3('themebtn').textContent.includes('otomatik'), 'tema varsayılan: otomatik');
-  click3($3('themebtn')); const th1 = D.documentElement.dataset.theme;
-  click3($3('themebtn')); const th2 = D.documentElement.dataset.theme;
-  click3($3('themebtn')); const th3 = D.documentElement.dataset.theme;
-  ok(th1 === 'light' && th2 === 'dark' && th3 === undefined && JSON.parse(W.localStorage.getItem('gt.theme')) === 'auto', 'tema düğmesi otomatik → açık → koyu → otomatik');
+  const themeBtn = v => D.querySelector('#themeseg [data-theme=' + v + ']');
+  ok(D.documentElement.dataset.theme === undefined && themeBtn('auto').getAttribute('aria-checked') === 'true', 'tema varsayılan: otomatik');
+  click3(themeBtn('light')); const th1 = D.documentElement.dataset.theme;
+  click3(themeBtn('dark')); const th2 = D.documentElement.dataset.theme;
+  const meta = D.querySelector('meta[name="theme-color"]').getAttribute('content');
+  click3(themeBtn('auto')); const th3 = D.documentElement.dataset.theme;
+  ok(th1 === 'light' && th2 === 'dark' && meta === '#0E1413' && th3 === undefined && JSON.parse(W.localStorage.getItem('gt.theme')) === 'auto' &&
+     themeBtn('auto').getAttribute('aria-checked') === 'true', 'tema seçimi açık → koyu → otomatik, tarayıcı çubuğu rengi uyuyor');
   const fourth = await load({ lang: 'en', theme: 'dark' });
   ok(fourth.errors.length === 0 && fourth.doc.documentElement.lang === 'en' && fourth.doc.documentElement.dataset.theme === 'dark' &&
      fourth.doc.getElementById('tab-akort').textContent === 'Tuner', 'kayıtlı İngilizce ve koyu tema ile açılış', fourth.errors.join(' | '));
   const left4 = [];
-  for(const tb of [...fourth.doc.querySelectorAll('[role=tab]')]){
+  for(const tb of [...fourth.doc.querySelectorAll('#tabs [role=tab]')]){
     tb.dispatchEvent(new fourth.win.MouseEvent('click', { bubbles: true }));
-    let txt = fourth.doc.querySelector('.page').textContent;
+    let txt = fourth.doc.body.textContent;
     for(const n of NAMES) txt = txt.split(n).join('');
     const m = txt.match(/[^\s]*[çğışöüÇĞİŞÖÜ][^\s]*/g);
     if(m) left4.push(tb.id + ': ' + [...new Set(m)].slice(0, 8).join(' '));

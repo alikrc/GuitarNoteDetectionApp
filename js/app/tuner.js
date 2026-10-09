@@ -90,7 +90,7 @@ const Tuner = (() => {
       adviceEl.className = "tadvice good";
       if(goodString !== rd.string){ goodString = rd.string; goodSince = now; }
       // 0,8 saniye boyunca akortlu kalınca ✓ işaretlenir
-      if(now - goodSince > 800 && !tuned.has(rd.string)){ tuned.add(rd.string); build(); checkAll(); }
+      if(now - goodSince > 800 && !tuned.has(rd.string)){ tuned.add(rd.string); build(); buzz(40); checkAll(); }
     }else{
       adviceEl.textContent = rd.advice === "sık" ? t("tuner.low", { c: Math.abs(rd.cents) }) : t("tuner.high", { c: rd.cents });
       adviceEl.className = "tadvice bad";
@@ -101,7 +101,7 @@ const Tuner = (() => {
   function checkAll(){
     if(tuned.size === 6 && !announced){
       announced = true;
-      toast(t("tuner.all"));
+      toast(t("tuner.all")); buzz([60, 40, 120]);
       Bus.emit("achieve", { type:"tuned" });
     }
   }

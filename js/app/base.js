@@ -23,7 +23,8 @@ const settings = {
   tuning: store.get("tuning", "standart"),
   instrument: store.get("instrument", "akustik"),
   lang: store.get("lang", null),
-  theme: store.get("theme", "auto")
+  theme: store.get("theme", "auto"),
+  vibrate: store.get("vibrate", true)
 };
 // Dil: kayıtlı yoksa tarayıcının diline göre (Türkçe değilse İngilizce). Modüller çizilmeden önce ayarlanır.
 if(!LANGS.includes(settings.lang)) settings.lang = (navigator.language || "tr").toLowerCase().startsWith("tr") ? "tr" : "en";
@@ -70,12 +71,85 @@ function radioArrows(group){
     if(again) again.focus();
   });
 }
+// Açılır katmanlar (telefondaki "Daha" menüsü, ayarlar, diyaloglar) üst üste açılabilir. En üstteki etkindir;
+// karartmaya dokunmak ya da Esc onu kapatır. modal: arkadaki uygulama etkisiz (inert) olur.
+// open(kapat, seçenekler) katmanı kaydeder, done(kapat) kaydı siler.
+const Layer = (() => {
+  const scrim = $("scrim"), app = $("app"), stack = [];
+  function sync(){
+    const top = stack[stack.length - 1];
+    scrim.hidden = !top;
+    if(top) scrim.classList.toggle("clear", !top.dim);
+    app.inert = stack.some(l => l.modal);
+    stack.forEach(l => { if(l.el) l.el.inert = l !== top; });
+  }
+  function open(close, { dim = true, modal = false, el = null } = {}){
+    if(stack.some(l => l.close === close)) return;
+    stack.push({ close, dim, modal, el }); sync();
+  }
+  function done(close){
+    const i = stack.findIndex(l => l.close === close);
+    if(i >= 0){ if(stack[i].el) stack[i].el.inert = false; stack.splice(i, 1); sync(); }
+  }
+  scrim.addEventListener("click", () => stack.length && stack[stack.length - 1].close());
+  window.addEventListener("keydown", e => { if(e.key === "Escape" && stack.length) stack[stack.length - 1].close(); });
+  return { open, done };
+})();
+
+// Ortadaki diyalog penceresi. show({ icon, title, html, actions: [{ label, value, primary }] }) seçilen değerle çözülür;
+// Esc ya da karartmaya dokunmak null verir.
+const Dialog = (() => {
+  const el = $("dlg"), acts = $("dlgacts");
+  let done = null, back = null;
+  function close(v){
+    if(!done) return;
+    const f = done; done = null;
+    el.hidden = true; Layer.done(dismiss);
+    if(back && back.isConnected) back.focus();
+    f(v);
+  }
+  const dismiss = () => close(null);
+  function show({ icon, title, html, actions }){
+    dismiss();
+    back = document.activeElement;
+    $("dlgicon").innerHTML = icon ? '<svg class="ico"><use href="#i-' + icon + '"/></svg>' : "";
+    $("dlgicon").hidden = !icon;
+    $("dlgtitle").textContent = title;
+    $("dlgbody").innerHTML = html;
+    acts.replaceChildren(...actions.map(a => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = a.primary ? "primary small" : "stopbtn"; b.textContent = a.label;
+      b.addEventListener("click", () => close(a.value));
+      return b;
+    }));
+    el.hidden = false;
+    Layer.open(dismiss, { modal:true, el });
+    (acts.querySelector(".primary") || acts.firstChild).focus();
+    return new Promise(r => { done = r; });
+  }
+  return { show, close: dismiss, get open(){ return !!done; } };
+})();
+
+// Kısa titreşim (destekleyen telefonlarda; ayarlardan kapatılabilir)
+function buzz(pattern){
+  if(!settings.vibrate || !navigator.vibrate) return;
+  try{ navigator.vibrate(pattern); }catch(e){}
+}
+
 let toastTimer = null;
-function toast(msg){
+// Kısa bildirim. action: { label, fn, sticky } — düğmeli bildirim; sticky ise kendiliğinden kapanmaz.
+function toast(msg, action){
   const el = $("toast");
-  el.textContent = msg; el.classList.add("show");
+  el.replaceChildren(document.createTextNode(msg));
+  if(action){
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "toastbtn"; b.textContent = action.label;
+    b.addEventListener("click", () => { el.classList.remove("show"); action.fn(); });
+    el.append(b);
+  }
+  el.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("show"), 3500);
+  if(!action || !action.sticky) toastTimer = setTimeout(() => el.classList.remove("show"), action ? 6000 : 3500);
 }
 
 // ---- Ses üretimi ----
@@ -172,7 +246,25 @@ defStr({
   "mic.off":        { tr:"mikrofon kapalı", en:"microphone off" },
   "mic.nohttps":    { tr:"bu ortamda mikrofon açılamıyor (https gerekli)", en:"microphone unavailable here (https required)" },
   "mic.asking":     { tr:"izin bekleniyor", en:"waiting for permission" },
-  "mic.failed":     { tr:"mikrofon açılamadı ({err})", en:"microphone failed ({err})" },
+  "mic.failed":     { tr:"mikrofon açılamadı", en:"microphone failed" },
+  "mic.denied":     { tr:"mikrofon izni yok", en:"no microphone permission" },
+  "mic.none":       { tr:"mikrofon bulunamadı", en:"no microphone found" },
+  "mic.primeTitle": { tr:"Mikrofon izni", en:"Microphone access" },
+  "mic.primeText":  { tr:"Pena, çaldığın notaları duyup doğru çalıp çalmadığını söylemek için mikrofonu kullanır.<br><br><b>Ses cihazında işlenir; kaydedilmez, hiçbir yere gönderilmez.</b><br><br>Birazdan tarayıcın izin isteyecek: “İzin ver”i seç.",
+                      en:"Pena uses the microphone to hear the notes you play and tell you whether they're right.<br><br><b>Audio is processed on your device; it isn't recorded or sent anywhere.</b><br><br>Your browser will ask for permission next: choose “Allow”." },
+  "mic.allow":      { tr:"Devam et", en:"Continue" },
+  "mic.notNow":     { tr:"Şimdi değil", en:"Not now" },
+  "mic.deniedTitle":{ tr:"Mikrofon izni kapalı", en:"Microphone access is blocked" },
+  "mic.deniedHelp": { tr:"İzni açmak için:<ol><li>Adres çubuğunun solundaki <b>kilit ya da ayar simgesine</b> dokun.</li><li><b>Mikrofon</b> iznini <b>İzin ver</b> yap.</li><li>“Tekrar dene”ye bas; olmazsa sayfayı yenile.</li></ol>Uygulama olarak kurduysan: telefonun Ayarlar → Uygulamalar → tarayıcın ya da Pena → İzinler → Mikrofon.",
+                      en:"To turn it on:<ol><li>Tap the <b>lock or settings icon</b> at the left of the address bar.</li><li>Set <b>Microphone</b> to <b>Allow</b>.</li><li>Press “Try again”; if that doesn't work, reload the page.</li></ol>If you installed it as an app: phone Settings → Apps → your browser or Pena → Permissions → Microphone." },
+  "mic.noneTitle":  { tr:"Mikrofon bulunamadı", en:"No microphone found" },
+  "mic.noneHelp":   { tr:"Bu cihazda kullanılabilir bir mikrofon yok. Mikrofonlu kulaklık ya da ses kartı takıp yeniden dene.",
+                      en:"There's no usable microphone on this device. Plug in a headset with a microphone or an audio interface and try again." },
+  "mic.failTitle":  { tr:"Mikrofon açılamadı", en:"Couldn't start the microphone" },
+  "mic.failHelp":   { tr:"Mikrofonu başka bir uygulama kullanıyor olabilir; onu kapatıp yeniden dene. (Hata: {err})",
+                      en:"Another app may be using the microphone; close it and try again. (Error: {err})" },
+  "mic.retry":      { tr:"Tekrar dene", en:"Try again" },
+  "mic.close":      { tr:"Kapat", en:"Close" },
   "mic.listening":  { tr:"dinliyor", en:"listening" },
   "mic.stopped":    { tr:"durdu", en:"stopped" },
   "mic.silent":     { tr:"sessiz", en:"silent" },
@@ -183,14 +275,14 @@ defStr({
 // Döngü her karede çalışır: ritim için vuruş yakalama her karede, perde bulma 45 ms'de bir. Sonuçlar Bus ile yayılır:
 // frame {now, d (perde bulucu sonucu), buf, sr, loud}, note {r (analyze), now, isNew}, silence {now}, muted.
 const Mic = (() => {
-  const btn = $("btn"), chip = $("chip"), lvbar = $("lvbar");
+  const btn = $("btn"), btnLbl = $("btnlbl"), chip = $("chip"), lvbar = $("lvbar");
   let ctx = null, stream = null, source = null, analyser = null, buf = null;
   let running = false, starting = false, raf = null, lastT = 0;
   const hist = [], stab = new NoteStabilizer(3);
   // Durum yazısı: anahtar saklanır ki dil değişince yeniden yazılsın
   let chipKey = "mic.off", chipVars = null;
   function setChip(key, vars){ if(key === chipKey && !vars) return; chipKey = key; chipVars = vars || null; chip.textContent = t(key, vars); }
-  Bus.on("lang", () => { chip.textContent = t(chipKey, chipVars); btn.textContent = t(running ? "mic.stop" : "mic.start"); });
+  Bus.on("lang", () => { chip.textContent = t(chipKey, chipVars); btnLbl.textContent = t(running ? "mic.stop" : "mic.start"); });
   const onsetSubs = new Set();
   let onsetDet = null, lastFeedT = null;
 
@@ -216,15 +308,19 @@ const Mic = (() => {
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
       setChip("mic.nohttps"); return false;
     }
-    starting = true; btn.disabled = true; setChip("mic.asking");
+    starting = true; btn.disabled = true;
+    // İlk kez: tarayıcının izin penceresinden önce neden gerektiğini anlat
+    if(!(await primed())){ starting = false; btn.disabled = false; return false; }
+    setChip("mic.asking");
     try{
       stream = await navigator.mediaDevices.getUserMedia({ audio:{
         echoCancellation:false, noiseSuppression:false, autoGainControl:false }});
     }catch(e){
-      setChip("mic.failed", { err: e.name });
       starting = false; btn.disabled = false;
+      failHelp(e);
       return false;
     }
+    store.set("micOk", true);
     ctx = Snd.ctx();                      // ses üretimiyle aynı bağlam: metronom ve vuruşlar tek saatle ölçülür
     await ctx.resume();
     analyser = ctx.createAnalyser();
@@ -234,12 +330,31 @@ const Mic = (() => {
     buf = new Float32Array(analyser.fftSize);
     resetNote(); lastFeedT = null; onsetDet = null;
     running = true; starting = false; btn.disabled = false;
-    btn.textContent = t("mic.stop"); btn.classList.add("listening");
+    btnLbl.textContent = t("mic.stop"); btn.classList.add("listening");
     setChip("mic.listening"); chip.classList.add("live");
     keepAwake();
     Bus.emit("mic", true);
     loop();
     return true;
+  }
+  async function primed(){
+    if(store.get("micOk", false)) return true;
+    try{
+      const p = navigator.permissions && await navigator.permissions.query({ name:"microphone" });
+      if(p && p.state === "granted") return true;
+    }catch(e){}
+    return await Dialog.show({ icon:"mic", title: t("mic.primeTitle"), html: t("mic.primeText"),
+      actions: [{ label: t("mic.notNow"), value:false }, { label: t("mic.allow"), value:true, primary:true }] }) === true;
+  }
+  // İzin reddedildi, mikrofon yok ya da meşgul: ne yapılacağını anlatan diyalog
+  function failHelp(e){
+    const kind = e.name === "NotAllowedError" || e.name === "SecurityError" ? "denied"
+               : e.name === "NotFoundError" || e.name === "OverconstrainedError" ? "none" : "fail";
+    setChip(kind === "denied" ? "mic.denied" : kind === "none" ? "mic.none" : "mic.failed");
+    if(kind === "denied") store.set("micOk", false);
+    Dialog.show({ icon:"mic", title: t("mic." + kind + "Title"), html: t("mic." + kind + "Help", { err: e.name }),
+      actions: [{ label: t("mic.close"), value:false }, { label: t("mic.retry"), value:true, primary:true }] })
+      .then(v => { if(v) start(); });
   }
   function stop(){
     if(!running) return;
@@ -251,7 +366,7 @@ const Mic = (() => {
     stream = source = analyser = null;
     resetNote();
     lvbar.style.width = "0"; lvbar.classList.remove("hot");
-    btn.textContent = t("mic.start"); btn.classList.remove("listening");
+    btnLbl.textContent = t("mic.start"); btn.classList.remove("listening");
     setChip("mic.stopped"); chip.classList.remove("live");
     Bus.emit("mic", false);
   }
@@ -312,7 +427,7 @@ const Mic = (() => {
     return () => onsetSubs.delete(fn);
   }
   btn.addEventListener("click", () => running ? stop() : start());
-  btn.textContent = t("mic.start"); chip.textContent = t("mic.off");
+  btnLbl.textContent = t("mic.start"); chip.textContent = t("mic.off");
   return {
     start, stop, onOnset, resetNote, dbPos,
     get running(){ return running; },

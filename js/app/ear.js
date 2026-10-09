@@ -70,6 +70,7 @@ const Ear = (() => {
     answered = true;
     const right = id === q.answer;
     if(right) round.correct++;
+    buzz(right ? 30 : [40, 60, 40]);
     round.marks[round.i] = right ? "r" : "w";
     [...answersEl.children].forEach(b => { b.disabled = true; });
     btn.classList.add(right ? "right" : "wrong");

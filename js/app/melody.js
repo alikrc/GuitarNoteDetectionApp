@@ -2,7 +2,7 @@
 const Melody = (() => {
   const selEl=$("melsel"), bpmEl=$("melbpm"), metaEl=$("melmeta"), notesEl=$("melnotes"), nextEl=$("melnext"),
         resEl=$("melres"), tabEl=$("meltab"), stopBtn=$("melstop"), textEl=$("meltext"), errEl=$("melerr"),
-        RES_HINT = () => t("h.melres");
+        RES_HINT = () => "";               // açıklama "Nasıl çalışır?" bölümünde
   defStr({
     "mel.custom":     { tr:"Kendi ezgim", en:"My melody" },
     "mel.customMeta": { tr:"Kendi yazdığın ezgi", en:"A melody you wrote" },

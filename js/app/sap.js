@@ -23,7 +23,9 @@ const Sap = (() => {
     "sap.sounding":  { tr:"duyulan {note}", en:"sounds as {note}" },
     "sap.outRange":  { tr:"yazılı {note} — seçili akortta sapta yok", en:"written {note} — not on the neck in this tuning" },
     "sap.openStr":   { tr:" · açık {s}. tel", en:" · open string {s}" },
-    "sap.cents":     { tr:"tampere notadan sapma: {c} sent", en:"off the tempered note: {c} cents" },
+    "sap.inTune":    { tr:"tam yerinde ✓ · {c} sent", en:"spot on ✓ · {c} cents" },
+    "sap.sharp":     { tr:"biraz tiz · {c} sent", en:"a little sharp · {c} cents" },
+    "sap.flat":      { tr:"biraz pes · {c} sent", en:"a little flat · {c} cents" },
     "sap.onePos":    { tr:"tek konum", en:"one position" },
     "sap.nPos":      { tr:"{n} konumda çalınır", en:"playable in {n} positions" },
     "sap.playAria":  { tr:"yazılı {note} çal", en:"play written {note}" },
@@ -252,7 +254,8 @@ const Sap = (() => {
     soundEl.innerHTML  = noteLabel(r.written - T) + " <em>" + otherName(r.written - T) + "</em>";
     hzEl.innerHTML     = num(r.freq) + " <em>Hz</em>";
     const openTxt = r.openString ? t("sap.openStr", { s: r.openString }) : "";
-    centtxt.textContent = t("sap.cents", { c: (r.cents>0?"+":"") + r.cents }) + openTxt;
+    const ck = Math.abs(r.cents) <= SCALE.ok ? "sap.inTune" : r.cents > 0 ? "sap.sharp" : "sap.flat";
+    centtxt.textContent = t(ck, { c: (r.cents>0?"+":"") + r.cents }) + openTxt;
     needle.style.left = Math.max(0, Math.min(100, 50 + r.cents/SCALE.max*50)) + "%";
     needle.classList.toggle("good", Math.abs(r.cents) <= SCALE.ok);
 
@@ -439,6 +442,7 @@ const Sap = (() => {
   });
   Bus.on("a4", () => { trace.length = 0; if(!Mic.running) show(lastShown ? analyze(writtenFreq(lastShown.written, T), T) : sample()); });
   Bus.on("tab", id => { if(id === "sap") drawTrace(); });
+  $("sapmore").addEventListener("toggle", drawTrace);     // kapalıyken tuval boyutsuz: açılınca yeniden çiz
   Bus.on("theme", () => setTimeout(drawTrace, 0));      // renkler CSS değişkenlerinden okunur
   Bus.on("lang", () => {
     labelOpenStrings(); buildStrip();

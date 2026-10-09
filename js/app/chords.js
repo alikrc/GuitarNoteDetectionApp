@@ -51,7 +51,7 @@ const Chords = (() => {
   });
   const cgroupsEl=$("cgroups"), clistEl=$("clist"), cdiag=$("cdiag"), cnameEl=$("cname"), cformEl=$("cformula"),
         cstepsEl=$("csteps"), ctipEl=$("ctip"), cresEl=$("cresult"), capoEl=$("capo"), capoTag=$("capotag"),
-        CRES_HINT = () => t("h.cresult");
+        CRES_HINT = () => "";              // açıklama "Nasıl çalışır?" bölümünde
   const FINGER_NAME = new Proxy({}, { get: (_, i) => fingerName(+i) });     // seçili dilde parmak adı
   // Şemanın altında yer dar: görevler kısaltılır (k. = küçük, b. = büyük); tam adlar talimat listesinde
   const ROLE_SHORT = {"küçük üçlü":"k.3", "büyük üçlü":"b.3", "beşli":"5", "küçük yedili":"k.7", "büyük yedili":"b.7", "ikili":"2", "dörtlü":"4"};
@@ -168,6 +168,26 @@ const Chords = (() => {
   $("cstrum").addEventListener("click", () => { Bus.emit("stopall"); strum(chord, 0.03); });
   $("carp").addEventListener("click", () => { Bus.emit("stopall"); strum(chord, 0.45); });
 
+  // ---- Alt bölümler: Öğren / Kontrol et / Alıştırma ----
+  const subEl = $("csub"), subBtns = [...subEl.querySelectorAll("[role=tab]")];
+  function pane(id){
+    subBtns.forEach(b => {
+      const on = b.id === "csub-" + id;
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.tabIndex = on ? 0 : -1;
+      $(b.getAttribute("aria-controls")).hidden = !on;
+    });
+    store.set("chordPane", id);
+  }
+  subBtns.forEach(b => b.addEventListener("click", () => pane(b.id.slice(5))));
+  subEl.addEventListener("keydown", e => {
+    const step = {ArrowRight:1, ArrowLeft:-1}[e.key]; if(!step) return;
+    const i = subBtns.findIndex(b => b.getAttribute("aria-selected") === "true");
+    const b = subBtns[(i + step + subBtns.length) % subBtns.length];
+    e.preventDefault(); b.click(); b.focus();
+  });
+  pane(["learn", "check", "practice"].includes(store.get("chordPane")) ? store.get("chordPane") : "learn");
+
   // ---- Mikrofonla kontrol ----
   // Tel tel: her teli sırayla dinler (tek ses, güvenilir). Tümü: akorun spektrumundan hangi seslerin duyulduğuna bakar.
   let checkMode = "off", chkIdx = 0, chkStatus = [], avgChroma = null, lastChromaT = 0;
@@ -190,12 +210,20 @@ const Chords = (() => {
   cresEl.addEventListener("click", e => { if(e.target.closest("[data-act=reset]")) resetCheck(); });
   function markRings(){
     cdiag.querySelectorAll(".cd-ring").forEach(e => e.classList.remove("next"));
-    cdiag.querySelectorAll(".cd-note").forEach(e => e.classList.remove("good", "bad"));
+    // Doğru/yanlış yalnızca renkle değil ✓ / ✗ işaretiyle de gösterilir
+    cdiag.querySelectorAll(".cd-note").forEach(e => {
+      e.classList.remove("good", "bad");
+      if(e.dataset.name) e.textContent = e.dataset.name;
+    });
     if(checkMode !== "strings") return;
     const ps = playedStrings();
     ps.forEach((r, i) => {
       const n = cdiag.querySelector("#cn-" + r.string);
-      if(n && chkStatus[i]) n.classList.add(chkStatus[i]==="ok" ? "good" : "bad");
+      if(n && chkStatus[i]){
+        n.classList.add(chkStatus[i]==="ok" ? "good" : "bad");
+        n.dataset.name = n.dataset.name || n.textContent;
+        n.textContent = n.dataset.name + (chkStatus[i]==="ok" ? "✓" : "✗");
+      }
     });
     if(chkIdx < ps.length){ const ring = cdiag.querySelector("#cr-" + ps[chkIdx].string); if(ring) ring.classList.add("next"); }
   }
@@ -243,7 +271,7 @@ const Chords = (() => {
 
   // ---- Akor değiştirme alıştırması: 60 saniyede iki akor arasında temiz geçiş sayısı ----
   const chaEl = $("cha"), chbEl = $("chb"), chStart = $("chstart"), chCount = $("chcount"), chTime = $("chtime"),
-        chNow = $("chnow"), chBest = $("chbest"), chMsg = $("chmsg"), CH_HINT = () => t("h.chmsg");
+        chNow = $("chnow"), chBest = $("chbest"), chMsg = $("chmsg"), CH_HINT = () => "";
   for(const c of CHORDS){ chaEl.appendChild(new Option(c.symbol, c.symbol)); chbEl.appendChild(new Option(c.symbol, c.symbol)); }
   const pair0 = store.get("changePair", ["Em", "Am"]);
   chaEl.value = pair0[0]; chbEl.value = pair0[1];
@@ -346,8 +374,9 @@ const Chords = (() => {
     get capo(){ return capo; },
     voicing, diagram, PROGS, select,
     setCapo(n){ capo = Math.max(0, Math.min(7, n | 0)); capoEl.value = capo; store.set("capo", capo); drawChord(); resetCheck(); Bus.emit("capo", capo); },
-    openCheck(sym, mode){ const c = chordBySymbol(sym); if(c) select(c); setCheck(mode); },
+    pane,
+    openCheck(sym, mode){ const c = chordBySymbol(sym); if(c) select(c); pane("check"); setCheck(mode); },
     openChanges(a, b){ chaEl.value = a; chbEl.value = b; store.set("changePair", [a, b]); showBest();
-                       $("change").scrollIntoView({ block:"start" }); chMsg.innerHTML = CH_HINT(); }
+                       pane("practice"); chMsg.innerHTML = CH_HINT(); }
   };
 })();

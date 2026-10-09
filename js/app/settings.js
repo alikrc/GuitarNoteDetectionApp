@@ -41,22 +41,35 @@ const SettingsBar = (() => {
   sensIn.addEventListener("input", () => applySens(+sensIn.value));
   applySens(settings.sens);
 
-  // Telefonda ayar çubuğu ekranın yarısını kaplamasın: varsayılan kapalı, düğmede seçili çalgı ve akort özetlenir.
-  // Geniş ekranda düğme gizli, çubuk hep açık (CSS yalnızca dar ekranda .collapsed'i uygular).
-  const bar = $("settings"), setBtn = $("setbtn");
+  // Ayarlar telefonda alttan açılan, geniş ekranda sağdan kayan bir panelde (#settings). Üst çubuktaki düğme
+  // geniş ekranda seçili çalgı ve akortu özetler. Panel açıkken uygulamanın geri kalanı etkisizdir (Layer, modal).
+  const drawer = $("settings"), setBtn = $("setbtn"), sumEl = $("setsum");
   function summary(){
-    setBtn.textContent = "⚙ " + L(INSTRUMENTS[settings.instrument], "short") + " · " + L(TUNINGS[settings.tuning], "name").split(" · ")[0] +
-      (settings.a4 !== 440 ? " · " + pcName(9) + " " + settings.a4 : "") + (bar.classList.contains("collapsed") ? " ▾" : " ▴");
+    sumEl.textContent = L(INSTRUMENTS[settings.instrument], "short") + " · " + L(TUNINGS[settings.tuning], "name").split(" · ")[0] +
+      (settings.a4 !== 440 ? " · " + pcName(9) + " " + settings.a4 : "");
   }
-  function setOpen(open){
-    bar.classList.toggle("collapsed", !open);
-    setBtn.setAttribute("aria-expanded", open ? "true" : "false");
-    store.set("settingsOpen", open);
-    summary();
+  function close(){
+    if(drawer.hidden) return;
+    drawer.hidden = true;
+    setBtn.setAttribute("aria-expanded", "false");
+    Layer.done(close);
+    setBtn.focus();
   }
-  setBtn.addEventListener("click", () => setOpen(bar.classList.contains("collapsed")));
+  function open(){
+    drawer.hidden = false;
+    setBtn.setAttribute("aria-expanded", "true");
+    Layer.open(close, { modal:true, el: drawer });
+    $("setclose").focus();
+  }
+  setBtn.addEventListener("click", () => drawer.hidden ? open() : close());
+  $("setclose").addEventListener("click", close);
   Bus.on("range", summary); Bus.on("a4", summary);
   Bus.on("lang", () => { fillOptions(); summary(); });
-  setOpen(store.get("settingsOpen", false));
-  return {};
+  // Titreşim: yalnızca destekleyen cihazlarda gösterilir
+  const vib = $("vibrate");
+  $("vibrow").hidden = !("vibrate" in navigator);
+  vib.checked = settings.vibrate;
+  vib.addEventListener("change", () => { settings.vibrate = vib.checked; store.set("vibrate", vib.checked); buzz(30); });
+  summary();
+  return { open, close };
 })();

@@ -9,16 +9,18 @@ Mikrofondan çaldığını dinler ve geri bildirim verir. Ses cihazda işlenir, 
 
 - **Dersler**: 16 adımlı başlangıç kursu (akort → Em, Am → dörtlük vuruş → akor geçişleri → kulak → C, G → … → ilk şarkı → F).
   Her dersin hedefi mikrofonla kontrol edilir; hedefe ulaşınca ders kendiliğinden tamamlanır, ilerleme tarayıcıda saklanır.
+  Başlatılan dersin hedefi ilgili sekmenin üstünde bir şeritte durur; ders bitince aynı yerde “Sıradaki derse geç” çıkar.
 - **Akort**: altı tel, hangi telin çalındığını kendisi bulur; ibre, sent sapması ve “burguyu sık / gevşet” talimatı,
   referans sesi. Altı tel de ±5 sent içinde kalınca tamam.
 - **Sap ve notalar**: duyulan nota ve tampere notadan sent sapması, tıklanabilir sap (eşik + çalgıya göre 19–24 perde), aynı sesin
   diğer konumları, adım adım talimat, dizek, tab, entonasyon izi, klavyeden çalınan nota şeridi.
-- **Telefonda** ayar çubuğu katlanır; düğmede seçili çalgı ve akort özetlenir.
+- **Uygulama gibi düzen**: telefonda altta gezinme çubuğu (Dersler, Akort, Akorlar, Şarkılar ve diğerleri için “Daha”), tablette
+  simgeli dar yan menü, masaüstünde yazılı yan menü. Ayarlar telefonda alttan, geniş ekranda sağdan açılan bir panelde.
 - **Akorlar**: 31 akor kutu şemasıyla (parmak numaraları, tel tel talimat, akor formülü, ipuçları), dinleme, **capo** (0–7),
   mikrofonla tel tel ya da tümü kontrolü, **akor değiştirme alıştırması** (1 dakikada iki akor arası temiz geçiş sayısı, rekor), sık dizilişler.
 - **Ritim**: 6 vuruş kalıbı (dörtlük, sekizlik, pop/folk, vals, Türk aksağı, Aksak), tempo, metronom, seçili akor ya da dizilişle
-  çalma; *birlikte çal* modunda her vuruşun zamanlaması (erken/geç ms, kaçan, fazla), gecikme ölçümü.
-- **Metronom**: üst çubuktan açılır, her sekmede çalışır (akor ya da ezgi çalarken de); 30–220 BPM, ölçü ve vurgu seçimi,
+  çalma; *birlikte çal* modunda her vuruşun zamanlaması (erken/geç ms, kaçan, fazla). Ses gecikmesi Ayarlar'dan bir kez ölçülür.
+- **Metronom**: üst çubuktan açılan yüzen panel (kapatınca çalmaya devam eder), her sekmede çalışır (akor ya da ezgi çalarken de); 30–220 BPM, ölçü ve vurgu seçimi,
   dokunarak tempo, görsel vuruş. Mikrofon dinlerken de kullanılabilir: tık sesi vuruş yakalamayı bozmaz.
 - **Şarkılar**: Türkçe pop/rock (Barış Manço, Teoman, Duman, MFÖ, Mor ve Ötesi, Cem Karaca, Yüksek Sadakat, Model, Ahmet Kaya),
   anonim türküler (Kâtibim, Sarı Gelin, Yemen Türküsü) ve kamu malı yabancı şarkıların akorları bölüm bölüm. Uygulama şarkı
@@ -31,7 +33,7 @@ Mikrofondan çaldığını dinler ve geri bildirim verir. Ses cihazda işlenir, 
 - **Kulak**: majör/minör, majör/minör/yedili, aralıklar, hangi açık tel; 10 soruluk turlar, en iyi puan.
 
 **Dil ve tema:** Türkçe ve İngilizce (ilk açılışta tarayıcının diline göre; İngilizcede notalar C D E… ile yazılır),
-otomatik / açık / koyu tema. İkisi de üst çubuktaki düğmelerle değişir ve saklanır.
+otomatik / açık / koyu tema. İkisi de Ayarlar panelinden değişir ve saklanır.
 
 Ayarlar (tarayıcıda saklanır): çalgı (klasik 19, akustik 20, elektro 22/24 perde; örnek sesin tınısı da değişir), akort
 (Standart, Drop D, Yarım ses pes, DADGAD, Açık Sol, Açık Re), diyapazon (La = 430–450 Hz), mikrofon hassasiyeti.
@@ -97,6 +99,7 @@ tıklayarak dener; dil ve tema geçişlerini de denetler. GitHub Actions her pus
 | `fonts/`, `css/fonts.css` | Uygulamayla gelen fontlar ve lisansları (OFL) |
 | `privacy.html` | Gizlilik politikası (Türkçe + İngilizce) |
 | `docs/PLAY_STORE.md` | Android (Play Store) yayını için yapılacaklar |
+| `docs/BACKLOG.md` | Eklenebilecek özellikler, öncelik sırasıyla |
 | `test.js`, `test-ui.js` | Mantık ve arayüz testleri |
 
 Betikler klasik `<script>` olarak sırayla yüklenir (derleme adımı yok). Her uygulama dosyası tek bir genel modül nesnesi

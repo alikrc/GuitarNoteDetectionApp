@@ -26,16 +26,13 @@
   --nut:#BDB4A3; --inlay:#6C6458;
 }
 *{box-sizing:border-box}
-body{background:var(--paper);color:var(--ink);font-family:var(--ui);margin:0}
-.page{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:28px 40px}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);margin:0;-webkit-tap-highlight-color:transparent}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
 
 .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:600}
-h1{font-family:var(--display);font-size:clamp(28px,5vw,40px);font-weight:700;
-   margin:6px 0 8px;letter-spacing:-.01em;text-wrap:balance}
-.lede{color:var(--muted);font-size:14px;line-height:1.6;max-width:62ch;margin:0}
-
-.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:22px 0 14px}
+.lede{color:var(--ink);font-size:15px;line-height:1.6;max-width:62ch;margin:0}
 button{font-family:var(--ui);cursor:pointer}
 .primary{font:600 15px/1 var(--ui);background:var(--accent);color:var(--surface);
   border:0;border-radius:999px;padding:12px 22px}
@@ -43,12 +40,13 @@ button{font-family:var(--ui);cursor:pointer}
 .primary:disabled{opacity:.6;cursor:progress}
 .primary.listening{background:var(--sunk);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-.chip{font:500 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;
-  color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 12px}
-.chip.live{color:var(--ok);border-color:var(--ok)}
+.chip{display:inline-flex;align-items:center;gap:6px;font:500 12px/1.2 var(--ui);color:var(--muted);
+  min-width:0;max-width:100%;overflow:hidden;white-space:nowrap}
+.chip::before{content:"";flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:var(--line)}
+.chip.live{color:var(--ok)}
+.chip.live::before{background:var(--ok);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
 
-.settings{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;
-  background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:18px}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field.grow{flex:1 1 160px}
 .stepper{display:flex;align-items:center;gap:4px;font:500 14px var(--mono)}
@@ -72,7 +70,7 @@ input[type=range]{width:140px;accent-color:var(--accent)}
 .lvthr{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--accent);left:50%}
 
 .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
-@media(max-width:820px){.grid{grid-template-columns:1fr}}
+@container content (max-width:780px){.grid{grid-template-columns:1fr}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;min-width:0}
 
 .label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -190,7 +188,7 @@ details.code summary{cursor:pointer}
 .progs button .cur{color:var(--accent);font-weight:700}
 .progs button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .cbody{display:grid;grid-template-columns:240px 1fr;gap:22px;align-items:start;margin-top:8px}
-@media(max-width:640px){.cbody{grid-template-columns:1fr}}
+@container content (max-width:600px){.cbody{grid-template-columns:1fr}}
 svg.cdiag{width:100%;max-width:240px;height:auto;display:block;margin:0 auto}
 .cd-grid{stroke:var(--metal-edge);stroke-width:1.3}
 .cd-nut{fill:var(--ink)}
@@ -219,7 +217,6 @@ svg.cdiag{width:100%;max-width:240px;height:auto;display:block;margin:0 auto}
 .prog{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 
 .strip{margin-top:18px}
-  border-radius:999px;padding:7px 12px;background:var(--surface)}
 .warn{color:var(--accent);font-weight:600}
 /* Ritim */
 .rhythm{margin-top:18px}
@@ -260,28 +257,18 @@ svg.cdiag{width:100%;max-width:240px;height:auto;display:block;margin:0 auto}
   border-radius:5px;padding:3px 5px;min-width:20px;text-align:center}
 .note.on .pn,.note.on .kk{color:var(--surface);border-color:rgba(255,255,255,.45)}
 
-footer{margin-top:26px;font-size:12px;color:var(--muted);line-height:1.7;max-width:70ch}
 a{color:var(--teal)}
 
-/* ---- Sekmeler ---- */
-.tabs{display:flex;gap:4px;overflow-x:auto;margin:0 0 16px;padding:4px;border:1px solid var(--line);
-  border-radius:999px;background:var(--surface);scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tabs button{flex:0 0 auto;border:0;background:transparent;color:var(--muted);font:600 13px/1 var(--ui);
-  padding:9px 14px;border-radius:999px;white-space:nowrap}
-.tabs button:hover{color:var(--ink)}
-.tabs button[aria-selected="true"]{background:var(--accent);color:var(--surface)}
 .panel[hidden]{display:none}
 .panel > .card + .card{margin-top:18px}
 .lead{font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 14px;max-width:70ch}
 .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
 .big{font-family:var(--display);font-weight:600;line-height:1}
-.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;
+.toast{position:fixed;left:50%;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 16px);transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;
   background:var(--ink);color:var(--surface);font:600 14px var(--ui);padding:12px 18px;border-radius:12px;
   box-shadow:0 6px 24px rgba(0,0,0,.25);transition:opacity .2s,transform .2s;max-width:calc(100vw - 32px);z-index:10}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media (prefers-reduced-motion: reduce){.toast{transition:none}}
-.micbtn{margin-top:4px}
 
 /* ---- Dersler ---- */
 .lprog{height:8px;border-radius:4px;background:var(--sunk);overflow:hidden;margin:4px 0 6px}
@@ -371,8 +358,6 @@ details.editor summary{cursor:pointer;font-size:13px;font-weight:600;color:var(-
 .edots i.r{background:var(--ok);box-shadow:none} .edots i.w{background:#C2412D;box-shadow:none}
 
 /* ---- Metronom ---- */
-.metrobtn.on{border-color:var(--accent);color:var(--accent)}
-.metro{margin:0 0 18px;padding:14px 18px}
 .mdots{display:flex;gap:8px;margin-top:12px}
 .mdots i{width:18px;height:18px;border-radius:50%;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--line)}
 .mdots i.acc{box-shadow:inset 0 0 0 2px var(--accent)}
@@ -384,10 +369,276 @@ details.editor summary{cursor:pointer;font-size:13px;font-weight:600;color:var(-
 .lyrbox{margin:12px 0 4px;padding:12px;border:1px dashed var(--line);border-radius:10px}
 .lyrbox textarea{min-height:110px;font-family:var(--ui)}
 
-/* ---- Telefonda ayar çubuğu katlanır ---- */
-.setbtn{display:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@media(max-width:640px){
-  .setbtn{display:inline-block}
-  .settings.collapsed{display:none}
-  .controls{gap:8px}
+/* =====================================================================
+   Uygulama kabuğu. Önce telefon: üstte uygulama çubuğu, altta gezinme çubuğu.
+   600 px'ten genişte solda simgeli dar menü (rail), 1100 px'ten genişte yazılı yan menü.
+   ===================================================================== */
+:root{--navh:64px}
+.ico{width:24px;height:24px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.app{min-height:100vh;min-height:100dvh}
+
+/* Yan blok telefonda görünmez; gezinme çubuğu ekranın altına sabitlenir */
+.side{display:contents}
+.brand{display:none}
+.brand{color:inherit;text-decoration:none;border-radius:12px}
+.brand img{display:block;border-radius:10px;transition:transform .15s}
+.brand:hover img{transform:scale(1.06)}
+.brand h1{font-family:var(--display);font-size:24px;font-weight:700;margin:0;letter-spacing:-.01em;line-height:1.1}
+
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;
+  background:var(--surface);border-top:1px solid var(--line);
+  padding:0 max(4px, env(safe-area-inset-left)) env(safe-area-inset-bottom) max(4px, env(safe-area-inset-right));
+  user-select:none;-webkit-user-select:none}
+.tabs{display:flex;flex:4 1 0;min-width:0}
+.tabs [role=tab],.morebtn{flex:1 1 0;min-width:0;height:var(--navh);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px;border:0;background:transparent;color:var(--muted);font:600 11px/1.1 var(--ui);
+  padding:0 2px;touch-action:manipulation}
+.tl{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabs [role=tab] .ico,.morebtn .ico{width:52px;height:30px;padding:3px 14px;border-radius:15px;transition:background .15s}
+.tabs [role=tab][aria-selected="true"],.morebtn.active{color:var(--ink)}
+.tabs [role=tab][aria-selected="true"] .ico,.morebtn.active .ico{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--accent-ink)}
+.tabs [role=tab]:focus-visible,.morebtn:focus-visible{outline-offset:-4px}
+.morebtn{flex:1 1 0}
+.nav.open .morebtn .ico{background:var(--sunk)}
+
+/* "Daha" menüsü: gezinme çubuğunun üstünde açılan kart */
+.tabmore{display:none;position:fixed;z-index:21;left:8px;right:8px;
+  bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 8px);
+  grid-template-columns:1fr 1fr;gap:8px;padding:14px;background:var(--surface);border:1px solid var(--line);
+  border-radius:20px;box-shadow:0 12px 40px rgba(0,0,0,.28)}
+.nav.open .tabmore{display:grid;animation:rise .18s ease-out}
+.navlabel{grid-column:1/-1;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:0 4px 2px}
+.tabmore [role=tab]{flex-direction:row;justify-content:flex-start;gap:10px;height:56px;padding:0 12px;
+  border-radius:14px;background:var(--sunk);font-size:14px;color:var(--ink)}
+.tabmore [role=tab] .ico{width:24px;height:24px;padding:0;background:none}
+.tabmore [role=tab][aria-selected="true"]{background:color-mix(in srgb,var(--accent) 18%,var(--surface))}
+.tabmore [role=tab][aria-selected="true"] .ico{background:none}
+
+.scrim{position:fixed;inset:0;z-index:19;background:rgba(8,12,12,.42);animation:fade .18s ease-out}
+.scrim.clear{background:transparent}
+.scrim[hidden]{display:none}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+
+/* Uygulama çubuğu: bölüm adı, mikrofon durumu ve üç eylem */
+.main{min-width:0;padding-bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 28px)}
+.appbar{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:10px;
+  padding:calc(env(safe-area-inset-top) + 10px) max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));
+  background:color-mix(in srgb,var(--paper) 86%,transparent);
+  -webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px)}
+.titles{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.viewtitle{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.01em;line-height:1.1;margin:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.iconbtn{display:inline-grid;place-items:center;width:44px;height:44px;padding:0;border-radius:50%;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 13px/1 var(--ui);touch-action:manipulation}
+.iconbtn:hover{border-color:var(--accent)}
+.iconbtn.small{width:36px;height:36px}
+.iconbtn.small .ico{width:20px;height:20px}
+.appbar .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.langbtn{display:none;font:700 12px/1 var(--ui);letter-spacing:.06em}
+.metrobtn.on{border-color:var(--accent);color:var(--accent)}
+.metrobtn.beat{background:color-mix(in srgb,var(--accent) 22%,var(--surface))}
+.micbtn-top{display:inline-grid;place-items:center;width:44px;height:44px;padding:0;border-radius:50%;touch-action:manipulation}
+.micbtn-top.listening{background:var(--ok);color:var(--surface);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 25%,transparent)}
+.micbtn-top.listening:hover{background:var(--ok)}
+
+.content{container:content/inline-size;padding:4px max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left))}
+
+/* Metronom: içeriğin üstünde yüzen kart; kapatınca çalmaya devam eder */
+.metro{position:fixed;z-index:18;left:8px;right:8px;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 8px);
+  margin:0;padding:12px 16px 14px;box-shadow:0 12px 40px rgba(0,0,0,.28);animation:rise .18s ease-out}
+.metro[hidden]{display:none}
+.metrohead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.metro .row{gap:10px 16px}
+.mfoot{display:flex;align-items:center;gap:8px;margin-top:12px}
+.mfoot .mdots{margin:0 auto 0 0;flex-wrap:wrap}
+
+/* Ayarlar: telefonda alttan açılan sayfa, geniş ekranda sağdan panel */
+.drawer{position:fixed;z-index:30;left:0;right:0;bottom:0;max-height:88vh;max-height:88dvh;overflow-y:auto;
+  overscroll-behavior:contain;background:var(--surface);border-radius:22px 22px 0 0;
+  padding:8px max(20px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  box-shadow:0 -12px 40px rgba(0,0,0,.3);animation:sheetup .22s ease-out}
+.drawer[hidden]{display:none}
+.drawer::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 6px}
+.drawerhead{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:-8px;
+  background:var(--surface);padding:6px 0 10px;z-index:1}
+.drawerhead h2{font-family:var(--display);font-size:24px;font-weight:700;margin:0}
+.setgroup{display:flex;flex-direction:column;gap:14px;padding:16px 0;border-top:1px solid var(--line)}
+.setgroup h3{margin:0;color:var(--teal)}
+.setgroup .field select{width:100%}
+.setgroup input[type=range]{width:100%}
+.setgroup .seg{align-self:flex-start}
+.abouttext{font-size:12.5px;color:var(--muted);line-height:1.7;margin:0}
+@keyframes sheetup{from{transform:translateY(100%)}}
+body:has(.drawer:not([hidden])){overflow:hidden}
+
+/* Kart içi kısa "Nasıl çalışır?" açıklaması */
+details.help{margin:-4px 0 12px}
+details.help summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--teal);width:max-content;list-style:none;padding:4px 0}
+details.help summary::-webkit-details-marker{display:none}
+details.help summary::before{content:"?";display:inline-grid;place-items:center;width:18px;height:18px;margin-right:6px;
+  border-radius:50%;border:1.5px solid currentColor;font-size:11px;font-weight:700}
+details.help[open] summary{margin-bottom:6px}
+details.help .lead{margin:0}
+
+/* İlk açılış kartı */
+.welcome{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-bottom:14px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--teal) 14%,var(--surface)),var(--surface))}
+.welcome[hidden]{display:none}
+
+/* Dersler: yalnızca sıradaki dersin açıklaması görünür, diğerleri tek satır */
+.lesson:not(.open) p{display:none}
+.lesson:not(.open){align-items:center;padding:10px 14px}
+.lesson:not(.open) h3{margin:0;font-size:14px}
+.lesson.open{padding:16px}
+.lesson.open h3{font-size:17px}
+
+/* Dokunmatik ekranda düğmeler parmakla rahat basılsın */
+@media (pointer:coarse){
+  .stopbtn,.primary.small,.cgroups button,.progs button,.alts button{min-height:40px}
+  .seg button{min-height:40px;padding-inline:16px}
+  .mini{width:40px;height:40px}
+  select,input[type=text],input[type=number].num,#a4{min-height:40px}
 }
+
+/* ---- Tablet: solda simgeli dar menü ---- */
+@media (min-width:600px){
+  .app{display:grid;grid-template-columns:88px minmax(0,1fr)}
+  .side{display:flex;flex-direction:column;align-items:stretch;gap:12px;position:sticky;top:0;height:100vh;height:100dvh;
+    overflow-y:auto;padding:16px 0 16px env(safe-area-inset-left);background:var(--surface);border-right:1px solid var(--line);z-index:16}
+  .brand{display:flex;justify-content:center;padding:0 0 6px}
+  .brandtext{display:none}
+  .nav{position:static;flex-direction:column;border:0;background:none;padding:0}
+  .tabs{flex-direction:column;flex:none;gap:2px}
+  .tabmore{display:contents}
+  .navlabel{display:block;height:1px;margin:8px 18px;padding:0;background:var(--line);font-size:0;overflow:hidden}
+  .tabs [role=tab],.tabmore [role=tab]{height:auto;flex:none;flex-direction:column;gap:4px;padding:8px 2px;
+    background:transparent;color:var(--muted);font-size:11px;border-radius:0}
+  .tabmore [role=tab] .ico{width:52px;height:30px;padding:3px 14px}
+  .tabmore [role=tab][aria-selected="true"]{background:transparent;color:var(--ink)}
+  .tabmore [role=tab][aria-selected="true"] .ico{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+  .tabs [role=tab]:hover{color:var(--ink)}
+  .morebtn{display:none}
+  .langbtn{display:inline-grid}
+  .main{padding-bottom:48px}
+  .appbar{padding:16px 28px 12px}
+  .viewtitle{font-size:30px}
+  .content{padding:4px 28px 0}
+  .toast{bottom:24px}
+  .metro{left:auto;right:24px;bottom:auto;top:76px;width:min(440px,calc(100vw - 136px))}
+  .drawer{left:auto;top:0;width:min(420px,100vw);max-height:none;border-radius:22px 0 0 22px;
+    padding-top:16px;box-shadow:-12px 0 40px rgba(0,0,0,.25);animation:sheetin .22s ease-out}
+  .drawer::before{display:none}
+  @keyframes sheetin{from{transform:translateX(100%)}}
+}
+
+/* ---- Masaüstü: yazılı yan menü, eylemler etiketli ---- */
+@media (min-width:1100px){
+  .app{grid-template-columns:248px minmax(0,1fr)}
+  .side{padding:22px 0}
+  .brand{justify-content:flex-start;align-items:center;gap:12px;padding:0 22px 14px}
+  .brandtext{display:block}
+  .brandtext .eyebrow{font-size:9.5px;margin-top:3px}
+  .tabs{padding:0 12px}
+  .tabs [role=tab],.tabmore [role=tab]{flex-direction:row;justify-content:flex-start;gap:12px;padding:0 14px;height:44px;
+    border-radius:12px;font-size:14px}
+  .tabs [role=tab] .ico,.tabmore [role=tab] .ico{width:22px;height:22px;padding:0;background:none !important}
+  .tabs [role=tab][aria-selected="true"],.tabmore [role=tab][aria-selected="true"]{
+    background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent-ink)}
+  .tabs [role=tab]:hover:not([aria-selected="true"]){background:var(--sunk)}
+  .navlabel{height:auto;margin:14px 14px 6px;background:none;font-size:11px}
+  .main{max-width:1240px}
+  .appbar{padding:22px 40px 14px}
+  .content{padding:4px 40px 0}
+  .viewtitle{font-size:34px}
+  .appbar .lbl{position:static;width:auto;height:auto;clip:auto;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+  .iconbtn:not(.small),.micbtn-top{display:inline-flex;align-items:center;gap:8px;width:auto;border-radius:999px;padding:0 16px 0 13px}
+  .iconbtn .ico,.micbtn-top .ico{width:20px;height:20px}
+  .micbtn-top{padding-right:20px}
+  .iconbtn.langbtn{padding:0 15px}
+  .metro{top:84px;right:40px}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .nav.open .tabmore,.scrim,.metro,.drawer,.chip.live::before{animation:none}
+}
+
+/* ---- Ders şeridi: başlatılan dersin hedefi / biten dersin tebriği ---- */
+.lessonbar{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin:0 0 14px;padding:14px 14px 14px 16px;
+  border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:14px;
+  background:color-mix(in srgb,var(--accent) 9%,var(--surface));animation:rise .2s ease-out}
+.lessonbar[hidden]{display:none}
+.lessonbar.done{border-color:color-mix(in srgb,var(--ok) 55%,var(--line));background:color-mix(in srgb,var(--ok) 12%,var(--surface))}
+.lbtext{flex:1 1 260px;min-width:0}
+.lbkicker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--accent-ink)}
+.lessonbar.done .lbkicker{color:var(--ok)}
+.lbtitle{font:600 17px/1.3 var(--ui);margin:3px 0 4px}
+.lbgoal{font-size:13px;line-height:1.55;color:var(--muted)}
+.lbacts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lbclose{margin-left:auto}
+
+/* ---- Diyalog ---- */
+.modal{position:fixed;z-index:40;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));
+  max-height:calc(100dvh - 48px);overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:20px;
+  padding:24px 22px 18px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .18s ease-out}
+.modal[hidden]{display:none}
+@keyframes pop{from{opacity:0;transform:translate(-50%,-48%) scale(.97)}}
+.dlgicon{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;margin-bottom:12px;
+  background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent-ink)}
+.dlgicon[hidden]{display:none}
+.modal h2{font-family:var(--display);font-size:22px;font-weight:700;margin:0 0 10px}
+.dlgbody{font-size:14px;line-height:1.6;color:var(--ink)}
+.dlgbody ol{padding-left:20px;margin:8px 0}
+.dlgbody li{margin:4px 0}
+.dlgacts{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px}
+.scrim{z-index:19}
+body:has(.modal:not([hidden])) .scrim{z-index:35}
+
+/* ---- Düğmeli bildirim ---- */
+.toast{display:flex;align-items:center;gap:14px}
+.toast.show{pointer-events:auto}
+.toastbtn{border:0;background:transparent;color:var(--accent);font:700 14px var(--ui);padding:4px 2px;cursor:pointer;white-space:nowrap}
+:root[data-theme="dark"] .toastbtn{color:var(--accent-ink)}
+
+/* ---- Simgeli düğmeler (mikrofon kullanan eylemler) ---- */
+.stopbtn .ico,.primary .ico{width:16px;height:16px;margin-right:6px;vertical-align:-3px;stroke-width:2}
+.stopbtn:has(.ico),.primary.small:has(.ico){display:inline-flex;align-items:center}
+
+/* ---- Sap: ayrıntılar ---- */
+details.more{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
+details.more .data{margin-top:14px;padding-top:0;border-top:0}
+
+/* ---- Akorlar: alt bölümler ---- */
+.subtabs{display:flex;width:100%;margin:2px 0 14px}
+.subtabs [role=tab]{flex:1 1 0;border:0;background:transparent;color:var(--muted);font:600 13px/1 var(--ui);padding:10px 8px;border-radius:999px}
+.subtabs [role=tab][aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.cpane[hidden]{display:none}
+.cpane .ccheck{border-top:0;padding-top:0}
+.cpane .change{margin-top:0;padding-top:0;border-top:0}
+
+/* ---- Şarkılar: altta yapışan oynatıcı ---- */
+.player{position:sticky;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 10px);z-index:5;margin:10px 0 12px;
+  padding:10px 12px;border:1px solid var(--line);border-radius:16px;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.player.on{box-shadow:0 8px 30px rgba(0,0,0,.22);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.player .rnow{margin:0 0 8px;min-height:0}
+.player .rnow:empty{display:none}
+.player .cbtns{margin:0}
+@media (min-width:600px){.player{bottom:16px}}
+.sline{scroll-margin:120px 0 180px}
+
+/* ---- Doğru / yanlış yalnızca renkle değil ---- */
+.eanswers button.right::before{content:"✓ "}
+.eanswers button.wrong::before{content:"✗ "}
+.edots i{display:grid;place-items:center;font:700 10px/1 var(--ui);color:#fff}
+.edots i.r::after{content:"✓"}
+.edots i.w::after{content:"✗"}
+
+.setgroup .lead{margin:0;font-size:12.5px}
+.setgroup .rnow:empty,.setgroup .cresult:empty{display:none}
+.setgroup .chk[hidden]{display:none}
+.lead:empty,.cresult:empty{margin:0}
+
+@media (prefers-reduced-motion: reduce){.lessonbar,.modal{animation:none}}

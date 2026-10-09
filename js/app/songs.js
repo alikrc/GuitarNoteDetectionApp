@@ -12,8 +12,8 @@ const Songs = (() => {
     "song.unknown": { tr:"Tanınmayan akor: {list}", en:"Unknown chord: {list}" },
     "song.noChords":{ tr:"Bu şarkıda tanınan akor yok.", en:"No recognised chords in this song." },
     "song.countIn": { tr:"Bir ölçü sayıyorum, sonra çal.", en:"I'll count one bar, then you play." },
-    "song.noLatency":{ tr:"Gecikme ölçülmedi (Ritim sekmesi → “Gecikmeyi ölç”); sonuçlarda sabit bir kayma olabilir.",
-                       en:"Latency not measured (Rhythm tab → “Measure latency”); results may be shifted." },
+    "song.noLatency":{ tr:"Gecikme ölçülmedi (Ayarlar → “Gecikmeyi ölç”); sonuçlarda sabit bir kayma olabilir.",
+                       en:"Latency not measured (Settings → “Measure latency”); results may be shifted." },
     "song.ready":   { tr:"Hazır… {n}", en:"Ready… {n}" },
     "song.nowNext": { tr:"Şimdi: {now} · sonra: {next}", en:"Now: {now} · next: {next}" },
     "song.nowLast": { tr:"Şimdi: {now} · son ölçü", en:"Now: {now} · last bar" },
@@ -35,9 +35,9 @@ const Songs = (() => {
   });
   const selEl=$("songsel"), rhyEl=$("songrhy"), bpmEl=$("songbpm"), metaEl=$("songmeta"), sheetEl=$("songsheet"),
         chordsEl=$("songchords"), nowEl=$("songnow"), resEl=$("songres"), stopBtn=$("songstop"),
-        titleEl=$("songtitle"), textEl=$("songtext"), errEl=$("songerr"), RES_HINT = () => t("h.songres");
+        titleEl=$("songtitle"), textEl=$("songtext"), errEl=$("songerr"), RES_HINT = () => "";
   let user = store.get("songs", []);            // [{ id, title, text, rhythm, bpm, capo?, source? }]
-  let song = null, parsed = null, playing = null, totals = null;
+  let song = null, parsed = null, playing = null, totals = null, lastLine = null;
 
   function fillRhythms(){ const v = rhyEl.value; rhyEl.replaceChildren(...RHYTHMS.map(r => new Option(L(r, "name") + " · " + r.meter.split(" ")[0], r.id))); if(v) rhyEl.value = v; }
   fillRhythms();
@@ -111,8 +111,14 @@ const Songs = (() => {
       const b = +s.dataset.bar, n = +s.dataset.bars;
       s.classList.toggle("now", s.dataset.bar !== undefined && bar >= b && bar < b + n);
     });
-    const cur = sheetEl.querySelector(".sseg.now");
-    if(cur) cur.scrollIntoView({ block:"nearest", inline:"nearest" });
+    // Çalan satır ekranın ortasında kalsın (oynatıcı ve alt çubuk altını örtmesin); satır değişince kaydırılır
+    const cur = sheetEl.querySelector(".sseg.now"), line = cur && cur.parentElement;
+    if(line && line !== lastLine){
+      lastLine = line;
+      const smooth = !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+      line.scrollIntoView({ block:"center", behavior: smooth ? "smooth" : "auto" });
+    }
+    if(!cur) lastLine = null;
   }
 
   async function play(mode){
@@ -143,10 +149,10 @@ const Songs = (() => {
           Bus.emit("achieve", { type:"song", id, pct: s.pct });
         }else resEl.innerHTML = t("song.endDemo");
       },
-      onStop: () => { playing = null; stopBtn.disabled = true; highlight(-1); nowEl.textContent = ""; }
+      onStop: () => { playing = null; stopBtn.disabled = true; highlight(-1); nowEl.textContent = ""; $("songplayer").classList.remove("on"); }
     });
     if(!ok){ resEl.textContent = t("song.noMic"); return; }
-    playing = mode; stopBtn.disabled = false;
+    playing = mode; stopBtn.disabled = false; $("songplayer").classList.add("on");
   }
   $("songdemo").addEventListener("click", () => play("demo"));
   $("songplay").addEventListener("click", () => play("play"));

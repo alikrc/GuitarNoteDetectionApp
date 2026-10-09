@@ -8,8 +8,10 @@ const Rhythm = (() => {
     "rhy.gridAria":  { tr:"{name} kalıbı: {cells}", en:"{name} pattern: {cells}" },
     "rhy.down":      { tr:"aşağı", en:"down" }, "rhy.up": { tr:"yukarı", en:"up" }, "rhy.rest": { tr:"boş", en:"rest" },
     "rhy.countIn":   { tr:"Bir ölçü sayıyorum, sonra çal.", en:"I'll count one bar, then you play." },
-    "rhy.noLatency": { tr:"Gecikme ölçülmedi; sonuçlarda sabit bir kayma olabilir. Önce “Gecikmeyi ölç”e bas.",
-                       en:"Latency not measured; results may be shifted. Press “Measure latency” first." },
+    "rhy.noLatency": { tr:"Gecikme ölçülmedi; sonuçlarda sabit bir kayma olabilir. Önce Ayarlar’dan “Gecikmeyi ölç”.",
+                       en:"Latency not measured; results may be shifted. Use “Measure latency” in Settings first." },
+    "rhy.latNone":   { tr:"ölçülmedi", en:"not measured" },
+    "rhy.latVal":    { tr:"şu an: {ms} ms", en:"current: {ms} ms" },
     "rhy.noMic":     { tr:"Mikrofon açılamadı; birlikte çalmak için mikrofon izni gerekir.", en:"Microphone failed; playing along needs microphone permission." },
     "rhy.ready":     { tr:"Hazır… {n}", en:"Ready… {n}" },
     "rhy.chord":     { tr:"Akor: {c}", en:"Chord: {c}" },
@@ -133,7 +135,7 @@ const Rhythm = (() => {
   const rlistEl=$("rlist"), rgridEl=$("rgrid"), rnameEl=$("rname"), rmeterEl=$("rmeter"), rdescEl=$("rdesc"),
         bpmIn=$("bpm"), bpmVal=$("bpmv"), rclickIn=$("rclick"), rsrcSel=$("rsrc"), rresEl=$("rresult"), rnowEl=$("rnow"),
         rstopBtn=$("rstop");
-  const RRES_HINT = () => t("h.rresult");
+  const RRES_HINT = () => "";               // açıklama "Nasıl çalışır?" bölümünde
   const ARROW = { D:"↓", U:"↑", "-":"·" };
   let rhythm = rhythmById(store.get("rhythm", "pop")) || rhythmById("pop");
   let bpm = Math.round(Math.min(160, Math.max(40, +store.get("bpm", 80) || 80)));
@@ -238,6 +240,10 @@ const Rhythm = (() => {
   rstopBtn.addEventListener("click", () => { stop(); stopCal(); });
   $("rdemo").addEventListener("click", () => cardStart("demo"));
   $("rplay").addEventListener("click", () => cardStart("play"));
+  // Gecikme ölçümü Ayarlar panelinde: sonuç ve sayım orada gösterilir
+  const calMsg = $("calmsg"), calNow = $("calnow"), latStat = $("latstat");
+  const showLat = () => { latStat.textContent = latency === null ? t("rhy.latNone") : t("rhy.latVal", { ms: Math.round(latency*1000) }); };
+  showLat();
   $("rcal").addEventListener("click", calStart);
 
   // Ölçü sonuçlarının özeti: zamanında yüzdesi, ortalama kayma, kaçan, fazla ve bir ipucu
@@ -260,16 +266,15 @@ const Rhythm = (() => {
   // Gecikme ölçümü: 4 tık say, sonraki 8 tıkın her birinde bir kez aşağı çal; ortanca sapma gecikme olur.
   async function calStart(){
     Bus.emit("stopall", { all:true });     // metronom da dursun: burada kendi tıkları var
-    if(!Mic.running && !(await Mic.start())){ rresEl.textContent = t("rhy.calNoMic"); return; }
+    if(!Mic.running && !(await Mic.start())){ calMsg.textContent = t("rhy.calNoMic"); return; }
     const a = Snd.ctx(), dt = 0.75, t0 = a.currentTime + 0.3, targets = [], onsets = [];
     for(let i = 0; i < 12; i++){ Snd.click(t0 + i*dt, i % 4 === 0); if(i >= 4) targets.push(t0 + i*dt); }
     calib = { unsub: Mic.onOnset(t => onsets.push(t)), raf: 0, timer: 0 };
-    rstopBtn.disabled = false;
-    rresEl.textContent = t("rhy.calStart");
+    calMsg.textContent = t("rhy.calStart");
     const tick = () => {
       if(!calib) return;
       const k = Math.floor((a.currentTime - t0) / dt);
-      rnowEl.textContent = k < 0 ? t("rhy.calReady") : k < 4 ? t("rhy.calCount", { n: k+1 }) : k < 12 ? t("rhy.calPlay", { n: k-3 }) : t("rhy.calWait");
+      calNow.textContent = k < 0 ? t("rhy.calReady") : k < 4 ? t("rhy.calCount", { n: k+1 }) : k < 12 ? t("rhy.calPlay", { n: k-3 }) : t("rhy.calWait");
       calib.raf = requestAnimationFrame(tick);
     };
     calib.raf = requestAnimationFrame(tick);
@@ -279,24 +284,24 @@ const Rhythm = (() => {
                           .filter(x => x !== null);
       stopCal();
       if(offs.length < 5){
-        rresEl.textContent = t("rhy.calFew", { n: offs.length });
+        calMsg.textContent = t("rhy.calFew", { n: offs.length });
         return;
       }
       latency = Math.min(0.4, Math.max(0, median(offs)));
-      store.set("latency", latency);
+      store.set("latency", latency); showLat();
       const spread = Math.round((Math.max(...offs) - Math.min(...offs))*1000);
-      rresEl.innerHTML = t("rhy.calDone", { ms: Math.round(latency*1000), n: offs.length, spread });
+      calMsg.innerHTML = t("rhy.calDone", { ms: Math.round(latency*1000), n: offs.length, spread });
     }, (t0 + 12*dt + 0.6 - a.currentTime)*1000);
   }
   function stopCal(){
     if(!calib) return;
     calib.unsub(); cancelAnimationFrame(calib.raf); clearTimeout(calib.timer); calib = null;
-    rnowEl.textContent = ""; if(!rs) rstopBtn.disabled = true;
+    calNow.textContent = "";
   }
 
   Bus.on("stopall", () => { stop(); stopCal(); });
   Bus.on("mic", on => { if(!on && rs && rs.mode === "play") stop(); });
-  Bus.on("lang", () => { const v = rsrcSel.value; fillSrc(); rsrcSel.value = v; buildRhythmList(); drawRhythm(); if(!rs) rresEl.innerHTML = RRES_HINT(); });
+  Bus.on("lang", () => { const v = rsrcSel.value; fillSrc(); rsrcSel.value = v; buildRhythmList(); drawRhythm(); showLat(); if(!rs) rresEl.innerHTML = RRES_HINT(); });
   buildRhythmList(); drawRhythm();
   return {
     start, stop, summarize,
